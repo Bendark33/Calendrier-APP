@@ -122,7 +122,7 @@ fieldset{border:0;padding:0;margin:0}
     <div class="who" id="fWho" style="margin:6px 0 10px"></div>
   </fieldset>
   <div class="msg" id="fMsg"></div>
-  <div class="row sp"><button class="d" id="fDel" hidden>Supprimer</button><span class="row" style="margin-left:auto"><button id="fCancel">Fermer</button><button class="p" id="fSave">Enregistrer</button></span></div>
+  <div class="row sp"><button class="d" id="fDel" hidden>Supprimer</button><span class="row" style="margin-left:auto"><button id="fDup" hidden>Dupliquer</button><button id="fCancel">Fermer</button><button class="p" id="fSave">Enregistrer</button></span></div>
 </dialog>
 
 <dialog id="pdlg">
@@ -130,12 +130,15 @@ fieldset{border:0;padding:0;margin:0}
   <label>Prénom</label><input id="pName" maxlength="40">
   <div class="row"><label>Ma couleur</label><input id="pColor" type="color"></div>
   <div id="pAdmin" hidden style="margin-top:12px">
+    <label>Nom de la famille</label><input id="pFam" maxlength="80">
     <label>Code d’invitation de la famille</label>
     <div class="row"><code id="pCode"></code><button id="pRenew">Renouveler</button></div>
     <small style="color:var(--mu)">Après le renouvellement, l’ancien code ne fonctionne plus.</small>
   </div>
   <div class="msg" id="pMsg"></div>
   <div class="row sp"><button id="pClose">Fermer</button><button class="p" id="pSave">Enregistrer</button></div>
+  <hr style="border:0;border-top:1px solid var(--bd);margin:14px 0">
+  <button class="d" id="pDelAcc">Supprimer mon compte</button>
 </dialog>
 
 <script>
@@ -291,17 +294,31 @@ $("vMonth").onclick = () => setView("month"); $("vWeek").onclick = () => setView
 /* ---------- Profil et code d’invitation ---------- */
 $("bProf").onclick = () => {
   $("pName").value = S.me.display_name; $("pColor").value = S.me.color; $("pMsg").textContent = "";
-  $("pAdmin").hidden = !["owner", "admin"].includes(S.me.role);
+  $("pAdmin").hidden = !["owner", "admin"].includes(S.me.role); $("pFam").value = S.fam.name;
   $("pCode").textContent = S.fam.invite_code;
   $("pdlg").showModal();
 };
 $("pClose").onclick = () => $("pdlg").close();
+$("pDelAcc").onclick = async () => {
+  if (!confirm("Supprimer définitivement ton compte ?\n\n• Tes événements créés seront supprimés pour toute la famille.\n• Si tu es propriétaire et que d’autres membres existent, la propriété leur est transférée.\n• Si tu es seul dans la famille, elle est supprimée.\n\nCette action est irréversible.")) return;
+  if ((prompt("Pour confirmer, tape SUPPRIMER") || "").trim().toUpperCase() !== "SUPPRIMER") return;
+  const {error} = await sb.rpc("delete_my_account");
+  if (error) return $("pMsg").textContent = error.message;
+  await sb.auth.signOut({scope:"local"});
+  $("pdlg").close(); alert("Ton compte a été supprimé.");
+};
 $("pSave").onclick = async () => {
   const n = $("pName").value.trim();
   if (!n) return $("pMsg").textContent = "Le prénom est requis";
   const c = $("pColor").value;
   const {error} = await sb.from("family_members").update({display_name:n, color:c}).eq("family_id", S.fam.id).eq("user_id", S.user.id);
   if (error) return $("pMsg").textContent = error.message;
+  const fam = $("pFam").value.trim();
+  if (!$("pAdmin").hidden && fam && fam !== S.fam.name) {
+    const r = await sb.from("families").update({name:fam}).eq("id", S.fam.id);
+    if (r.error) return $("pMsg").textContent = r.error.message;
+    S.fam.name = fam; $("famName").textContent = fam;
+  }
   S.me.display_name = n; S.me.color = c;
   $("pdlg").close(); await loadMembers(); render();
 };
@@ -327,13 +344,19 @@ function openDlg(ev){
   const ids = ev ? ev.event_attendees.map(x => x.user_id) : [S.user.id];
   $("fWho").innerHTML = S.members.map(m => `<label><input type="checkbox" value="${m.user_id}"${ids.includes(m.user_id) ? " checked" : ""}> ${esc(m.display_name)}</label>`).join("");
   $("fMsg").textContent = ""; tAll();
-  $("fSet").disabled = !can; $("fSave").hidden = !can; $("fDel").hidden = !(ev && can);
+  $("fSet").disabled = !can; $("fSave").hidden = !can; $("fDel").hidden = !(ev && can); $("fDup").hidden = !ev;
   $("dlg").showModal();
 }
 function tAll(){ $("fT1").hidden = $("fT2").hidden = $("fAll").checked; }
 $("fAll").onchange = tAll;
 $("add").onclick = () => openDlg(null);
 $("fCancel").onclick = () => $("dlg").close();
+$("fDup").onclick = () => {
+  S.edit = null;
+  $("dTitle").textContent = "Copie : choisis la nouvelle date";
+  $("fSet").disabled = false; $("fSave").hidden = false; $("fDel").hidden = true; $("fDup").hidden = true;
+  $("fD1").focus();
+};
 
 $("fSave").onclick = async () => {
   const t = $("fTitle").value.trim(), all = $("fAll").checked;
