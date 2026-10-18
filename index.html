@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Calendrier famille</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#3b82f6">
+<link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
 :root{--bg:#f6f7fb;--card:#fff;--tx:#1b1f2a;--mu:#667085;--bd:#e3e6ee;--ac:#3b82f6;color-scheme:light}
@@ -43,6 +46,13 @@ dialog::backdrop{background:#0008}
 fieldset{border:0;padding:0;margin:0}
 .who label{display:inline-flex;gap:4px;align-items:center;margin-right:10px;color:var(--tx)}
 @media (max-width:600px){.cell{min-height:58px}.cell i{height:6px;font-size:0;padding:0}}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
+.wday{border:1px solid var(--bd);border-radius:10px;padding:8px;min-height:140px;background:var(--card);cursor:pointer}
+.wday.today .wh{color:var(--ac)}.wday.sel{outline:2px solid var(--ac)}
+.wh{font-weight:600;font-size:13px;text-transform:capitalize;margin-bottom:6px}
+.wev{border-left:4px solid;padding:4px 6px;margin-top:6px;font-size:13px;background:var(--bg);border-radius:6px}
+.wev small,.wday>small{color:var(--mu)}
+@media (max-width:760px){.week{grid-template-columns:1fr}.wday{min-height:0}}
 </style>
 </head>
 <body>
@@ -75,12 +85,12 @@ fieldset{border:0;padding:0;margin:0}
 <section id="app" hidden>
   <div class="row sp">
     <div><strong id="famName"></strong> <button id="bCode" title="Copier le code d’invitation"></button></div>
-    <button id="bOut2">Déconnexion</button>
+    <span class="row"><button id="bProf">Profil</button><button id="bOut2">Déconnexion</button></span>
   </div>
   <div class="row" id="chips" style="margin:10px 0"></div>
   <div class="card">
     <div class="row sp">
-      <div class="row"><button id="prev">‹</button><button id="next">›</button><button id="today">Aujourd’hui</button></div>
+      <div class="row"><button id="prev">‹</button><button id="next">›</button><button id="today">Aujourd’hui</button><button id="vMonth">Mois</button><button id="vWeek">Semaine</button></div>
       <strong id="title" style="text-transform:capitalize"></strong>
       <button class="p" id="add">+ Événement</button>
     </div>
@@ -89,7 +99,7 @@ fieldset{border:0;padding:0;margin:0}
     </div>
     <div id="cells"></div>
   </div>
-  <div class="card" style="margin-top:10px">
+  <div class="card" id="dayCard" style="margin-top:10px">
     <strong id="dayTitle" style="text-transform:capitalize"></strong>
     <div id="dayList"></div>
   </div>
@@ -115,6 +125,19 @@ fieldset{border:0;padding:0;margin:0}
   <div class="row sp"><button class="d" id="fDel" hidden>Supprimer</button><span class="row" style="margin-left:auto"><button id="fCancel">Fermer</button><button class="p" id="fSave">Enregistrer</button></span></div>
 </dialog>
 
+<dialog id="pdlg">
+  <h1>Mon profil</h1>
+  <label>Prénom</label><input id="pName" maxlength="40">
+  <div class="row"><label>Ma couleur</label><input id="pColor" type="color"></div>
+  <div id="pAdmin" hidden style="margin-top:12px">
+    <label>Code d’invitation de la famille</label>
+    <div class="row"><code id="pCode"></code><button id="pRenew">Renouveler</button></div>
+    <small style="color:var(--mu)">Après le renouvellement, l’ancien code ne fonctionne plus.</small>
+  </div>
+  <div class="msg" id="pMsg"></div>
+  <div class="row sp"><button id="pClose">Fermer</button><button class="p" id="pSave">Enregistrer</button></div>
+</dialog>
+
 <script>
 const SUPABASE_URL = "https://oxctvckwjdrkqctjybfc.supabase.co";
 const SUPABASE_KEY = "sb_publishable_eUk7TWztGhed7aXSABHCsg_eCBjy1yb";
@@ -125,7 +148,7 @@ const pad = n => String(n).padStart(2, "0");
 const ymd = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt = (d, o) => new Intl.DateTimeFormat("fr-FR", o).format(d);
-const S = {user:null, fam:null, me:null, members:[], events:[], month:new Date(), sel:new Date(), off:new Set(), edit:null, ch:null};
+const S = {user:null, fam:null, me:null, members:[], events:[], month:new Date(), sel:new Date(), off:new Set(), edit:null, ch:null, view:(innerWidth < 600 ? "week" : "month")};
 
 function show(id){ ["auth","onboard","app"].forEach(x => $(x).hidden = x !== id); }
 const col = id => S.members.find(m => m.user_id === id)?.color || "#64748b";
@@ -163,7 +186,7 @@ async function boot(){
   $("famName").textContent = S.fam.name;
   $("bCode").textContent = "Code : " + S.fam.invite_code;
   show("app");
-  await loadMembers(); await loadEvents();
+  await loadMembers(); setView(S.view);
   S.ch = sb.channel("ev-" + S.fam.id)
     .on("postgres_changes", {event:"*", schema:"public", table:"events", filter:"family_id=eq." + S.fam.id}, loadEvents)
     .subscribe();
@@ -194,8 +217,9 @@ $("chips").onclick = e => {
 
 /* ---------- Événements ---------- */
 async function loadEvents(){
-  const y = S.month.getFullYear(), m = S.month.getMonth();
-  const a = new Date(y, m, -7), b = new Date(y, m + 1, 8);
+  let a, b;
+  if (S.view === "week") { a = weekStart(S.sel); b = new Date(a.getFullYear(), a.getMonth(), a.getDate() + 7); }
+  else { const y = S.month.getFullYear(), m = S.month.getMonth(); a = new Date(y, m, -7); b = new Date(y, m + 1, 8); }
   const {data, error} = await sb.from("events").select("*,event_attendees(user_id)")
     .eq("family_id", S.fam.id).lt("starts_at", b.toISOString()).gte("ends_at", a.toISOString()).order("starts_at");
   if (error) return alert(error.message);
@@ -205,10 +229,25 @@ const visible = e => [e.created_by, ...e.event_attendees.map(a => a.user_id)].so
 const onDay = k => S.events.filter(e => visible(e) && ymd(new Date(e.starts_at)) <= k && k <= ymd(new Date(e.ends_at)));
 
 function render(){
+  const todayK = ymd(new Date()), selK = ymd(S.sel), wk = S.view === "week";
+  $("grid").hidden = wk; $("dayCard").hidden = wk;
+  const people = e => esc([...new Set([e.created_by, ...e.event_attendees.map(a => a.user_id)])].map(who).join(", "));
+  if (wk){
+    const st = weekStart(S.sel), en = new Date(st.getFullYear(), st.getMonth(), st.getDate() + 6);
+    $("title").textContent = fmt(st, {day:"numeric", month:"short"}) + " – " + fmt(en, {day:"numeric", month:"short", year:"numeric"});
+    let h = "";
+    for (let i = 0; i < 7; i++){
+      const d = new Date(st.getFullYear(), st.getMonth(), st.getDate() + i), k = ymd(d), ev = onDay(k);
+      h += `<div class="wday${k === todayK ? " today" : ""}${k === selK ? " sel" : ""}" data-d="${k}"><div class="wh">${fmt(d, {weekday:"long", day:"numeric", month:"short"})}</div>`
+        + (ev.map(e => `<div class="wev" data-e="${e.id}" style="border-left-color:${col(e.created_by)}"><b>${e.all_day ? "Journée" : fmt(new Date(e.starts_at), {hour:"2-digit", minute:"2-digit"})}</b> ${esc(e.title)}<br><small>${people(e)}${e.location ? " · " + esc(e.location) : ""}</small></div>`).join("") || "<small>Rien de prévu</small>")
+        + "</div>";
+    }
+    $("cells").style.cssText = ""; $("cells").className = "week"; $("cells").innerHTML = h;
+    return;
+  }
   const y = S.month.getFullYear(), m = S.month.getMonth();
   $("title").textContent = fmt(S.month, {month:"long", year:"numeric"});
   const start = new Date(y, m, 1 - ((new Date(y, m, 1).getDay() + 6) % 7));
-  const todayK = ymd(new Date()), selK = ymd(S.sel);
   let h = "";
   for (let i = 0; i < 42; i++){
     const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i), k = ymd(d), ev = onDay(k);
@@ -216,25 +255,63 @@ function render(){
       + ev.slice(0, 3).map(e => `<i style="background:${col(e.created_by)}">${esc(e.title)}</i>`).join("")
       + (ev.length > 3 ? `<small>+${ev.length - 3}</small>` : "") + "</div>";
   }
-  $("cells").style.cssText = "display:grid;grid-template-columns:repeat(7,1fr);gap:4px";
+  $("cells").className = ""; $("cells").style.cssText = "display:grid;grid-template-columns:repeat(7,1fr);gap:4px";
   $("cells").innerHTML = h;
   $("dayTitle").textContent = fmt(S.sel, {weekday:"long", day:"numeric", month:"long"});
   const list = onDay(selK);
   $("dayList").innerHTML = list.length ? list.map(e => {
     const t = e.all_day ? "Toute la journée" : fmt(new Date(e.starts_at), {hour:"2-digit", minute:"2-digit"}) + " – " + fmt(new Date(e.ends_at), {hour:"2-digit", minute:"2-digit"});
-    const ppl = [...new Set([e.created_by, ...e.event_attendees.map(a => a.user_id)])].map(who).join(", ");
-    return `<div class="ev" data-e="${e.id}"><u style="background:${col(e.created_by)}"></u><div><strong>${esc(e.title)}</strong><br><small>${t}${e.location ? " · " + esc(e.location) : ""}<br>${esc(ppl)}</small></div></div>`;
+    return `<div class="ev" data-e="${e.id}"><u style="background:${col(e.created_by)}"></u><div><strong>${esc(e.title)}</strong><br><small>${t}${e.location ? " · " + esc(e.location) : ""}<br>${people(e)}</small></div></div>`;
   }).join("") : `<p style="color:var(--mu)">Rien de prévu.</p>`;
 }
+
 $("cells").onclick = e => {
+  const ev = e.target.closest("[data-e]");
+  if (ev) return openDlg(S.events.find(v => v.id === ev.dataset.e));
   const c = e.target.closest("[data-d]"); if (!c) return;
   S.sel = new Date(c.dataset.d + "T00:00");
-  if (S.sel.getMonth() !== S.month.getMonth()) { S.month = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); loadEvents(); } else render();
+  if (S.view === "month" && S.sel.getMonth() !== S.month.getMonth()) { S.month = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); loadEvents(); } else render();
 };
 $("dayList").onclick = e => { const x = e.target.closest("[data-e]"); if (x) openDlg(S.events.find(v => v.id === x.dataset.e)); };
-const go = n => { S.month = new Date(S.month.getFullYear(), S.month.getMonth() + n, 1); loadEvents(); };
+const weekStart = d => new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
+const go = n => {
+  if (S.view === "week") { S.sel = new Date(S.sel.getFullYear(), S.sel.getMonth(), S.sel.getDate() + 7 * n); S.month = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); }
+  else S.month = new Date(S.month.getFullYear(), S.month.getMonth() + n, 1);
+  loadEvents();
+};
 $("prev").onclick = () => go(-1); $("next").onclick = () => go(1);
 $("today").onclick = () => { S.month = new Date(); S.sel = new Date(); loadEvents(); };
+function setView(v){
+  S.view = v;
+  $("vMonth").classList.toggle("p", v === "month"); $("vWeek").classList.toggle("p", v === "week");
+  loadEvents();
+}
+$("vMonth").onclick = () => setView("month"); $("vWeek").onclick = () => setView("week");
+
+/* ---------- Profil et code d’invitation ---------- */
+$("bProf").onclick = () => {
+  $("pName").value = S.me.display_name; $("pColor").value = S.me.color; $("pMsg").textContent = "";
+  $("pAdmin").hidden = !["owner", "admin"].includes(S.me.role);
+  $("pCode").textContent = S.fam.invite_code;
+  $("pdlg").showModal();
+};
+$("pClose").onclick = () => $("pdlg").close();
+$("pSave").onclick = async () => {
+  const n = $("pName").value.trim();
+  if (!n) return $("pMsg").textContent = "Le prénom est requis";
+  const c = $("pColor").value;
+  const {error} = await sb.from("family_members").update({display_name:n, color:c}).eq("family_id", S.fam.id).eq("user_id", S.user.id);
+  if (error) return $("pMsg").textContent = error.message;
+  S.me.display_name = n; S.me.color = c;
+  $("pdlg").close(); await loadMembers(); render();
+};
+$("pRenew").onclick = async () => {
+  if (!confirm("Renouveler le code ? L’ancien code ne fonctionnera plus.")) return;
+  const code = [...crypto.getRandomValues(new Uint8Array(4))].map(x => x.toString(16).padStart(2, "0")).join("");
+  const {error} = await sb.from("families").update({invite_code:code}).eq("id", S.fam.id);
+  if (error) return $("pMsg").textContent = error.message;
+  S.fam.invite_code = code; $("pCode").textContent = code; $("bCode").textContent = "Code : " + code;
+};
 
 /* ---------- Fenêtre d’événement ---------- */
 function openDlg(ev){
@@ -286,6 +363,7 @@ $("fDel").onclick = async () => {
 };
 
 sb.auth.getSession().then(({data}) => { if (!data.session) show("auth"); });
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>
 </html>
