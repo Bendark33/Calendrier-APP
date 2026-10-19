@@ -1,6 +1,6 @@
 {
-  "name": "Calendrier famille",
-  "short_name": "Famille",
+  "name": "Calendy",
+  "short_name": "Calendy",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0f1218",

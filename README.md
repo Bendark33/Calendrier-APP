@@ -1,4 +1,4 @@
-# Calendrier famille
+# Calendy
 
 Calendrier partagé pour la famille (web, adaptable en application Android avec Capacitor).
 Données hébergées sur Supabase (projet `famille-calendrier`).

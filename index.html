@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Calendrier famille</title>
+<title>Calendy</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#3b82f6">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -60,7 +60,7 @@ select{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px
 <main>
 
 <section id="auth" class="card narrow" hidden>
-  <h1>Calendrier famille</h1>
+  <h1>Calendy</h1>
   <label>Email</label><input id="email" type="email" autocomplete="email">
   <label>Mot de passe (6 caractères minimum)</label><input id="pass" type="password" autocomplete="current-password">
   <div class="msg" id="authMsg"></div>
@@ -112,7 +112,8 @@ select{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px
   <fieldset id="fSet">
     <h1 id="dTitle">Événement</h1>
     <label>Titre</label><input id="fTitle" maxlength="120">
-    <label><input type="checkbox" id="fAll"> Toute la journée</label>
+    <label><input type="checkbox" id="fAll"> Toute la journée</label><br>
+    <label><input type="checkbox" id="fImp"> ★ Important</label>
     <div class="row">
       <div style="flex:1"><label>Début</label><input type="date" id="fD1"><input type="time" id="fT1"></div>
       <div style="flex:1"><label>Fin</label><input type="date" id="fD2"><input type="time" id="fT2"></div>
@@ -126,6 +127,28 @@ select{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px
   <div class="row sp"><button class="d" id="fDel" hidden>Supprimer</button><span class="row" style="margin-left:auto"><button id="fDup" hidden>Dupliquer</button><button id="fCancel">Fermer</button><button class="p" id="fSave">Enregistrer</button></span></div>
 </dialog>
 
+<div id="lock" hidden style="position:fixed;inset:0;z-index:99;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px">
+  <h1>Calendy</h1><div class="msg" id="lockMsg"></div><button class="p" id="bUnlock">Déverrouiller</button>
+</div>
+
+<dialog id="ndlg">
+  <h1>Notifications</h1>
+  <p id="nWeb" hidden style="color:var(--mu)">Les notifications ne fonctionnent que dans l’application mobile. Tes choix sont quand même enregistrés.</p>
+  <label><input type="checkbox" id="nEn"> Activer les notifications</label><br>
+  <label><input type="checkbox" id="nNew"> Nouvel événement</label><br>
+  <label><input type="checkbox" id="nChg"> Événement modifié</label><br>
+  <label><input type="checkbox" id="nImp"> Seulement les événements importants (★)</label>
+  <p style="margin:12px 0 4px"><strong>Rappels avant un événement</strong></p>
+  <div id="nOff" class="who">
+    <label><input type="checkbox" value="60"> 1 heure</label>
+    <label><input type="checkbox" value="1440"> 1 jour</label>
+    <label><input type="checkbox" value="10080"> 1 semaine</label>
+    <label><input type="checkbox" value="43200"> 1 mois</label>
+  </div>
+  <div class="msg" id="nMsg"></div>
+  <div class="row sp"><button id="nClose">Fermer</button><button class="p" id="nSave">Enregistrer</button></div>
+</dialog>
+
 <dialog id="pdlg">
   <h1>Mon profil</h1>
   <p id="pPlan" style="color:var(--mu);margin:0 0 10px"></p>
@@ -137,6 +160,8 @@ select{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px
     <div class="row"><code id="pCode"></code><button id="pRenew">Renouveler</button></div>
     <small style="color:var(--mu)">Après le renouvellement, l’ancien code ne fonctionne plus.</small>
   </div>
+  <label id="pBioRow" hidden style="display:block;margin-top:12px"><input type="checkbox" id="pBio"> Verrouiller avec l’empreinte ou le code du téléphone</label>
+  <button id="bNotif" style="margin-top:12px">Notifications…</button>
   <div class="msg" id="pMsg"></div>
   <div class="row sp"><button id="pClose">Fermer</button><button class="p" id="pSave">Enregistrer</button></div>
   <hr style="border:0;border-top:1px solid var(--bd);margin:14px 0">
@@ -153,7 +178,9 @@ const pad = n => String(n).padStart(2, "0");
 const ymd = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt = (d, o) => new Intl.DateTimeFormat("fr-FR", o).format(d);
-const S = {user:null, fam:null, me:null, members:[], events:[], month:new Date(), sel:new Date(), off:new Set(), edit:null, ch:null, view:(innerWidth < 600 ? "week" : "month")};
+const S = {user:null, fam:null, me:null, members:[], events:[], month:new Date(), sel:new Date(), off:new Set(), edit:null, ch:null, view:(innerWidth < 600 ? "week" : "month"), prefs:null, token:null};
+const isNative = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+const NP_DEF = {enabled:true, notify_new:true, notify_changes:true, only_important:false, reminder_offsets:[1440]};
 
 function show(id){ ["auth","onboard","app"].forEach(x => $(x).hidden = x !== id); }
 const col = id => S.members.find(m => m.user_id === id)?.color || "#64748b";
@@ -169,7 +196,11 @@ async function doAuth(signup){
 }
 $("bIn").onclick = () => doAuth(false);
 $("bUp").onclick = () => doAuth(true);
-$("bOut1").onclick = $("bOut2").onclick = () => sb.auth.signOut();
+async function logout(){
+  try { if (S.token) await sb.from("device_tokens").delete().eq("token", S.token); } catch {}
+  await sb.auth.signOut();
+}
+$("bOut1").onclick = $("bOut2").onclick = logout;
 
 let lastUid;
 sb.auth.onAuthStateChange((_e, s) => {
@@ -183,12 +214,14 @@ sb.auth.onAuthStateChange((_e, s) => {
 async function boot(fid){
   if (S.ch) { sb.removeChannel(S.ch); S.ch = null; }
   if (!S.user) return show("auth");
-  const [m, p] = await Promise.all([
+  const [m, p, n] = await Promise.all([
     sb.from("family_members").select("family_id,role,display_name,color,joined_at,families(name,invite_code)").eq("user_id", S.user.id).order("joined_at"),
-    sb.from("user_plans").select("plan,pro_until").maybeSingle()
+    sb.from("user_plans").select("plan,pro_until").maybeSingle(),
+    sb.from("notification_prefs").select("*").maybeSingle()
   ]);
   if (m.error) return alert(m.error.message);
   S.plan = p.data || null;
+  S.prefs = {...NP_DEF, ...(n.data || {})};
   S.pro = !!S.plan && S.plan.plan === "pro" && (!S.plan.pro_until || new Date(S.plan.pro_until) > new Date());
   S.all = m.data;
   if (!S.all.length) { $("oBack").hidden = true; return show("onboard"); }
@@ -198,6 +231,7 @@ async function boot(fid){
   try { localStorage.setItem("famId", S.fam.id); } catch {}
   renderFam();
   show("app");
+  if (isNative && S.prefs.enabled) registerPush();
   await loadMembers(); setView(S.view);
   S.ch = sb.channel("ev-" + S.fam.id)
     .on("postgres_changes", {event:"*", schema:"public", table:"events", filter:"family_id=eq." + S.fam.id}, loadEvents)
@@ -264,7 +298,7 @@ function render(){
     for (let i = 0; i < 7; i++){
       const d = new Date(st.getFullYear(), st.getMonth(), st.getDate() + i), k = ymd(d), ev = onDay(k);
       h += `<div class="wday${k === todayK ? " today" : ""}${k === selK ? " sel" : ""}" data-d="${k}"><div class="wh">${fmt(d, {weekday:"long", day:"numeric", month:"short"})}</div>`
-        + (ev.map(e => `<div class="wev" data-e="${e.id}" style="border-left-color:${col(e.created_by)}"><b>${e.all_day ? "Journée" : fmt(new Date(e.starts_at), {hour:"2-digit", minute:"2-digit"})}</b> ${esc(e.title)}<br><small>${people(e)}${e.location ? " · " + esc(e.location) : ""}</small></div>`).join("") || "<small>Rien de prévu</small>")
+        + (ev.map(e => `<div class="wev" data-e="${e.id}" style="border-left-color:${col(e.created_by)}"><b>${e.all_day ? "Journée" : fmt(new Date(e.starts_at), {hour:"2-digit", minute:"2-digit"})}</b> ${e.important ? "★ " : ""}${esc(e.title)}<br><small>${people(e)}${e.location ? " · " + esc(e.location) : ""}</small></div>`).join("") || "<small>Rien de prévu</small>")
         + "</div>";
     }
     $("cells").style.cssText = ""; $("cells").className = "week"; $("cells").innerHTML = h;
@@ -277,7 +311,7 @@ function render(){
   for (let i = 0; i < 42; i++){
     const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i), k = ymd(d), ev = onDay(k);
     h += `<div class="cell${d.getMonth() !== m ? " out" : ""}${k === todayK ? " today" : ""}${k === selK ? " sel" : ""}" data-d="${k}"><b>${d.getDate()}</b>`
-      + ev.slice(0, 3).map(e => `<i style="background:${col(e.created_by)}">${esc(e.title)}</i>`).join("")
+      + ev.slice(0, 3).map(e => `<i style="background:${col(e.created_by)}">${e.important ? "★ " : ""}${esc(e.title)}</i>`).join("")
       + (ev.length > 3 ? `<small>+${ev.length - 3}</small>` : "") + "</div>";
   }
   $("cells").className = ""; $("cells").style.cssText = "display:grid;grid-template-columns:repeat(7,1fr);gap:4px";
@@ -286,7 +320,7 @@ function render(){
   const list = onDay(selK);
   $("dayList").innerHTML = list.length ? list.map(e => {
     const t = e.all_day ? "Toute la journée" : fmt(new Date(e.starts_at), {hour:"2-digit", minute:"2-digit"}) + " – " + fmt(new Date(e.ends_at), {hour:"2-digit", minute:"2-digit"});
-    return `<div class="ev" data-e="${e.id}"><u style="background:${col(e.created_by)}"></u><div><strong>${esc(e.title)}</strong><br><small>${t}${e.location ? " · " + esc(e.location) : ""}<br>${people(e)}</small></div></div>`;
+    return `<div class="ev" data-e="${e.id}"><u style="background:${col(e.created_by)}"></u><div><strong>${e.important ? "★ " : ""}${esc(e.title)}</strong><br><small>${t}${e.location ? " · " + esc(e.location) : ""}<br>${people(e)}</small></div></div>`;
   }).join("") : `<p style="color:var(--mu)">Rien de prévu.</p>`;
 }
 
@@ -316,6 +350,7 @@ $("vMonth").onclick = () => setView("month"); $("vWeek").onclick = () => setView
 /* ---------- Profil et code d’invitation ---------- */
 $("bProf").onclick = () => {
   $("pName").value = S.me.display_name; $("pColor").value = S.me.color; $("pMsg").textContent = "";
+  $("pBioRow").hidden = !isNative; $("pBio").checked = bioOn();
   $("pAdmin").hidden = !["owner", "admin"].includes(S.me.role); $("pFam").value = S.fam.name;
   $("pCode").textContent = S.fam.invite_code;
   $("pPlan").textContent = S.pro
@@ -363,7 +398,7 @@ function openDlg(ev){
   const hm = d => pad(d.getHours()) + ":" + pad(d.getMinutes());
   $("dTitle").textContent = ev ? "Modifier l’événement" : "Nouvel événement";
   $("fTitle").value = ev?.title || ""; $("fLoc").value = ev?.location || ""; $("fDesc").value = ev?.description || "";
-  $("fAll").checked = !!ev?.all_day;
+  $("fAll").checked = !!ev?.all_day; $("fImp").checked = !!ev?.important;
   $("fD1").value = ymd(a); $("fD2").value = ymd(b);
   $("fT1").value = ev ? hm(a) : "09:00"; $("fT2").value = ev ? hm(b) : "10:00";
   const ids = ev ? ev.event_attendees.map(x => x.user_id) : [S.user.id];
@@ -390,7 +425,7 @@ $("fSave").onclick = async () => {
   const e = new Date(($("fD2").value || $("fD1").value) + "T" + (all ? "23:59" : $("fT2").value || "00:00"));
   if (isNaN(s) || isNaN(e) || e < s) return $("fMsg").textContent = "Dates invalides";
   const row = {title:t, description:$("fDesc").value.trim() || null, location:$("fLoc").value.trim() || null,
-    starts_at:s.toISOString(), ends_at:e.toISOString(), all_day:all};
+    starts_at:s.toISOString(), ends_at:e.toISOString(), all_day:all, important:$("fImp").checked};
   const ids = [...document.querySelectorAll("#fWho input:checked")].map(x => x.value);
   let id = S.edit?.id, r;
   if (id) r = await sb.from("events").update(row).eq("id", id);
@@ -409,6 +444,65 @@ $("fDel").onclick = async () => {
   if (r.error) return $("fMsg").textContent = r.error.message;
   $("dlg").close(); loadEvents();
 };
+
+/* ---------- Notifications ---------- */
+async function registerPush(){
+  if (!isNative) return;
+  try {
+    const FM = Capacitor.registerPlugin("FirebaseMessaging");
+    const perm = await FM.requestPermissions();
+    if (perm.receive !== "granted") return;
+    const {token} = await FM.getToken();
+    S.token = token;
+    await sb.rpc("register_device", {p_token:token, p_platform:Capacitor.getPlatform()});
+  } catch (e) { console.warn("Notifications indisponibles", e); }
+}
+$("bNotif").onclick = () => {
+  const p = S.prefs;
+  $("nEn").checked = p.enabled; $("nNew").checked = p.notify_new; $("nChg").checked = p.notify_changes; $("nImp").checked = p.only_important;
+  document.querySelectorAll("#nOff input").forEach(i => i.checked = p.reminder_offsets.includes(+i.value));
+  $("nWeb").hidden = isNative; $("nMsg").textContent = "";
+  $("pdlg").close(); $("ndlg").showModal();
+};
+$("nClose").onclick = () => $("ndlg").close();
+$("nSave").onclick = async () => {
+  const p = {user_id:S.user.id, enabled:$("nEn").checked, notify_new:$("nNew").checked, notify_changes:$("nChg").checked,
+    only_important:$("nImp").checked, updated_at:new Date().toISOString(),
+    reminder_offsets:[...document.querySelectorAll("#nOff input:checked")].map(i => +i.value)};
+  const {error} = await sb.from("notification_prefs").upsert(p);
+  if (error) return $("nMsg").textContent = error.message;
+  S.prefs = p; $("ndlg").close();
+  if (p.enabled) registerPush();
+};
+
+/* ---------- Verrouillage biométrique (application mobile) ---------- */
+const BA = isNative ? Capacitor.registerPlugin("BiometricAuth") : null;
+const bioOn = () => { try { return localStorage.getItem("bioLock") === "1"; } catch { return false; } };
+const setBio = v => { try { localStorage.setItem("bioLock", v ? "1" : "0"); } catch {} };
+async function unlock(){
+  $("lockMsg").textContent = "";
+  const c = await BA.checkBiometry().catch(() => null);
+  if (!c || (!c.isAvailable && !c.deviceIsSecure)) { setBio(false); $("lock").hidden = true; return; }
+  try {
+    await BA.authenticate({reason:"Déverrouiller le calendrier", cancelTitle:"Annuler", allowDeviceCredential:true, androidTitle:"Calendy"});
+    $("lock").hidden = true;
+  } catch { $("lockMsg").textContent = "Authentification échouée. Réessaie."; }
+}
+function lockNow(){ if (isNative && bioOn()) { $("lock").hidden = false; unlock(); } }
+$("bUnlock").onclick = unlock;
+let hiddenAt = 0;
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) hiddenAt = Date.now();
+  else if (hiddenAt && Date.now() - hiddenAt > 30000) lockNow();
+});
+$("pBio").onchange = async () => {
+  if (!$("pBio").checked) return setBio(false);
+  try {
+    await BA.authenticate({reason:"Activer le verrouillage", cancelTitle:"Annuler", allowDeviceCredential:true, androidTitle:"Calendy"});
+    setBio(true);
+  } catch { $("pBio").checked = false; $("pMsg").textContent = "Activation annulée."; }
+};
+lockNow();
 
 sb.auth.getSession().then(({data}) => { if (!data.session) show("auth"); });
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
