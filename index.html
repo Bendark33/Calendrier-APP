@@ -46,6 +46,7 @@ dialog::backdrop{background:#0008}
 fieldset{border:0;padding:0;margin:0}
 .who label{display:inline-flex;gap:4px;align-items:center;margin-right:10px;color:var(--tx)}
 @media (max-width:600px){.cell{min-height:58px}.cell i{height:6px;font-size:0;padding:0}}
+select{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx)}
 .week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
 .wday{border:1px solid var(--bd);border-radius:10px;padding:8px;min-height:140px;background:var(--card);cursor:pointer}
 .wday.today .wh{color:var(--ac)}.wday.sel{outline:2px solid var(--ac)}
@@ -78,13 +79,13 @@ fieldset{border:0;padding:0;margin:0}
     <label>Ou rejoindre avec un code d’invitation</label><input id="oCode" placeholder="ex. a1b2c3d4">
     <button id="bJoin">Rejoindre</button>
     <div class="msg" id="oMsg"></div>
-    <button id="bOut1">Se déconnecter</button>
+    <div class="row"><button id="oBack" hidden>Retour</button><button id="bOut1">Se déconnecter</button></div>
   </div>
 </section>
 
 <section id="app" hidden>
   <div class="row sp">
-    <div><strong id="famName"></strong> <button id="bCode" title="Copier le code d’invitation"></button></div>
+    <div class="row"><strong id="famName"></strong><select id="famSel" hidden></select><button id="bNewFam">+ Famille</button><button id="bCode" title="Copier le code d’invitation"></button></div>
     <span class="row"><button id="bProf">Profil</button><button id="bOut2">Déconnexion</button></span>
   </div>
   <div class="row" id="chips" style="margin:10px 0"></div>
@@ -127,6 +128,7 @@ fieldset{border:0;padding:0;margin:0}
 
 <dialog id="pdlg">
   <h1>Mon profil</h1>
+  <p id="pPlan" style="color:var(--mu);margin:0 0 10px"></p>
   <label>Prénom</label><input id="pName" maxlength="40">
   <div class="row"><label>Ma couleur</label><input id="pColor" type="color"></div>
   <div id="pAdmin" hidden style="margin-top:12px">
@@ -174,34 +176,54 @@ sb.auth.onAuthStateChange((_e, s) => {
   const u = s?.user || null;
   if ((u?.id || null) === lastUid) return;
   lastUid = u?.id || null; S.user = u;
-  setTimeout(boot, 0);
+  setTimeout(() => boot(), 0);
 });
 
 /* ---------- Famille ---------- */
-async function boot(){
+async function boot(fid){
   if (S.ch) { sb.removeChannel(S.ch); S.ch = null; }
   if (!S.user) return show("auth");
-  const {data, error} = await sb.from("family_members")
-    .select("family_id,role,display_name,color,families(name,invite_code)").eq("user_id", S.user.id).limit(1);
-  if (error) return alert(error.message);
-  if (!data.length) return show("onboard");
-  S.me = data[0]; S.fam = {id: data[0].family_id, ...data[0].families};
-  $("famName").textContent = S.fam.name;
-  $("bCode").textContent = "Code : " + S.fam.invite_code;
+  const [m, p] = await Promise.all([
+    sb.from("family_members").select("family_id,role,display_name,color,joined_at,families(name,invite_code)").eq("user_id", S.user.id).order("joined_at"),
+    sb.from("user_plans").select("plan,pro_until").maybeSingle()
+  ]);
+  if (m.error) return alert(m.error.message);
+  S.plan = p.data || null;
+  S.pro = !!S.plan && S.plan.plan === "pro" && (!S.plan.pro_until || new Date(S.plan.pro_until) > new Date());
+  S.all = m.data;
+  if (!S.all.length) { $("oBack").hidden = true; return show("onboard"); }
+  let want = fid; try { want = want || localStorage.getItem("famId"); } catch {}
+  S.me = S.all.find(x => x.family_id === want) || S.all[0];
+  S.fam = {id: S.me.family_id, ...S.me.families};
+  try { localStorage.setItem("famId", S.fam.id); } catch {}
+  renderFam();
   show("app");
   await loadMembers(); setView(S.view);
   S.ch = sb.channel("ev-" + S.fam.id)
     .on("postgres_changes", {event:"*", schema:"public", table:"events", filter:"family_id=eq." + S.fam.id}, loadEvents)
     .subscribe();
 }
+function renderFam(){
+  $("famName").textContent = S.fam.name; $("famName").hidden = S.all.length > 1;
+  $("famSel").innerHTML = S.all.map(x => `<option value="${x.family_id}"${x.family_id === S.fam.id ? " selected" : ""}>${esc(x.families.name)}</option>`).join("");
+  $("famSel").hidden = S.all.length < 2;
+  $("bCode").textContent = "Code : " + S.fam.invite_code;
+}
+$("famSel").onchange = () => { S.off = new Set(); boot($("famSel").value); };
+$("bNewFam").onclick = () => {
+  if (!S.pro) return alert("Avoir plusieurs familles est réservé à l’offre Pro.");
+  $("oMsg").textContent = ""; $("oName").value = S.me.display_name; $("oColor").value = S.me.color;
+  $("oBack").hidden = false; show("onboard");
+};
+$("oBack").onclick = () => boot(S.fam.id);
 $("bCode").onclick = () => navigator.clipboard?.writeText(S.fam.invite_code).then(() => $("bCode").textContent = "Code copié");
 
 async function onboard(fn, args){
   $("oMsg").textContent = "";
   if (!$("oName").value.trim()) return $("oMsg").textContent = "Ton prénom est requis";
-  const {error} = await sb.rpc(fn, args);
+  const {data, error} = await sb.rpc(fn, args);
   if (error) return $("oMsg").textContent = error.message;
-  boot();
+  S.off = new Set(); boot(data);
 }
 $("bCreate").onclick = () => onboard("create_family", {p_name:$("oFam").value.trim() || "Ma famille", p_display_name:$("oName").value.trim(), p_color:$("oColor").value});
 $("bJoin").onclick = () => onboard("join_family", {p_code:$("oCode").value, p_display_name:$("oName").value.trim(), p_color:$("oColor").value});
@@ -296,6 +318,9 @@ $("bProf").onclick = () => {
   $("pName").value = S.me.display_name; $("pColor").value = S.me.color; $("pMsg").textContent = "";
   $("pAdmin").hidden = !["owner", "admin"].includes(S.me.role); $("pFam").value = S.fam.name;
   $("pCode").textContent = S.fam.invite_code;
+  $("pPlan").textContent = S.pro
+    ? "Offre Pro" + (S.plan.pro_until ? " jusqu’au " + fmt(new Date(S.plan.pro_until), {day:"numeric", month:"long", year:"numeric"}) : "") + " : plusieurs familles."
+    : "Offre gratuite : 1 famille. L’offre Pro permet d’en avoir plusieurs.";
   $("pdlg").showModal();
 };
 $("pClose").onclick = () => $("pdlg").close();
@@ -317,7 +342,7 @@ $("pSave").onclick = async () => {
   if (!$("pAdmin").hidden && fam && fam !== S.fam.name) {
     const r = await sb.from("families").update({name:fam}).eq("id", S.fam.id);
     if (r.error) return $("pMsg").textContent = r.error.message;
-    S.fam.name = fam; $("famName").textContent = fam;
+    S.fam.name = fam; S.me.families.name = fam; renderFam();
   }
   S.me.display_name = n; S.me.color = c;
   $("pdlg").close(); await loadMembers(); render();
@@ -327,7 +352,7 @@ $("pRenew").onclick = async () => {
   const code = [...crypto.getRandomValues(new Uint8Array(4))].map(x => x.toString(16).padStart(2, "0")).join("");
   const {error} = await sb.from("families").update({invite_code:code}).eq("id", S.fam.id);
   if (error) return $("pMsg").textContent = error.message;
-  S.fam.invite_code = code; $("pCode").textContent = code; $("bCode").textContent = "Code : " + code;
+  S.fam.invite_code = code; S.me.families.invite_code = code; $("pCode").textContent = code; renderFam();
 };
 
 /* ---------- Fenêtre d’événement ---------- */
