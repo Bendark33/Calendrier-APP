@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calendy</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#3b82f6">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--tx:#1b1f2a;--mu:#667085;--bd:#e3e6ee;--ac:#3b82f6;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1218;--card:#181c25;--tx:#e8eaf0;--mu:#98a2b3;--bd:#2a303c;--ac:#60a5fa;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx);padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
+main{max-width:980px;margin:0 auto;padding:12px}
+section[hidden],[hidden]{display:none!important}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px}
+.narrow{max-width:400px;margin:8vh auto 0}
+h1{font-size:20px;margin:0 0 12px}
+input,button,textarea{font:inherit;color:inherit}
+input:not([type=checkbox]):not([type=color]),textarea{width:100%;padding:10px;margin:4px 0 10px;border:1px solid var(--bd);border-radius:10px;background:var(--bg)}
+input[type=color]{width:48px;height:36px;border:1px solid var(--bd);border-radius:8px;background:none;padding:2px}
+button{padding:9px 14px;border:1px solid var(--bd);border-radius:10px;background:var(--card);cursor:pointer}
+button.p{background:var(--ac);border-color:var(--ac);color:#fff}
+button.d{color:#ef4444}
+label{font-size:13px;color:var(--mu)}
+.msg{color:#ef4444;font-size:13px;min-height:18px;margin:6px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sp{justify-content:space-between}
+.chip{display:inline-flex;gap:6px;align-items:center;padding:5px 10px;border-radius:99px}
+.chip i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.chip.off{opacity:.4}
+#grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
+.dow{text-align:center;font-size:12px;color:var(--mu);margin-top:8px}
+.cell{min-height:78px;padding:4px;border:1px solid var(--bd);border-radius:10px;background:var(--card);cursor:pointer;overflow:hidden}
+.cell.out{opacity:.45}.cell.today b{color:var(--ac)}.cell.sel{outline:2px solid var(--ac)}
+.cell b{font-size:12px}
+.cell i{display:block;font-style:normal;font-size:11px;color:#fff;border-radius:4px;padding:1px 4px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell small{color:var(--mu);font-size:11px}
+.ev{display:flex;gap:10px;padding:10px;border:1px solid var(--bd);border-radius:10px;margin-top:8px;cursor:pointer}
+.ev u{width:5px;border-radius:3px;flex:none}
+.ev small{color:var(--mu)}
+dialog{border:1px solid var(--bd);border-radius:14px;background:var(--card);color:var(--tx);width:min(460px,94vw);padding:16px}
+dialog::backdrop{background:#0008}
+fieldset{border:0;padding:0;margin:0}
+.who label{display:inline-flex;gap:4px;align-items:center;margin-right:10px;color:var(--tx)}
+@media (max-width:600px){.cell{min-height:58px}.cell i{height:6px;font-size:0;padding:0}}
+select{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
+.wday{border:1px solid var(--bd);border-radius:10px;padding:8px;min-height:140px;background:var(--card);cursor:pointer}
+.wday.today .wh{color:var(--ac)}.wday.sel{outline:2px solid var(--ac)}
+.wh{font-weight:600;font-size:13px;text-transform:capitalize;margin-bottom:6px}
+.wev{position:relative;padding:7px 8px 7px 16px;margin-top:6px;font-size:13px;background:var(--bg);border-radius:8px;cursor:pointer}
+.wev .bar{position:absolute;left:0;top:0;bottom:0;width:8px;border-radius:8px 0 0 8px}
+.wev small,.wday>small{color:var(--mu)}
+@media (max-width:760px){.week{grid-template-columns:1fr}.wday{min-height:0}}
+</style>
+</head>
+<body>
+<main>
+
+<section id="auth" class="card narrow" hidden>
+  <h1>Calendy</h1>
+  <label>Email</label><input id="email" type="email" autocomplete="email">
+  <label>Mot de passe (6 caractères minimum)</label><input id="pass" type="password" autocomplete="current-password">
+  <div class="msg" id="authMsg"></div>
+  <div class="row"><button class="p" id="bIn">Se connecter</button><button id="bUp">Créer un compte</button></div>
+</section>
+
+<section id="onboard" hidden>
+  <div class="card narrow">
+    <h1>Ta famille</h1>
+    <label>Ton prénom</label><input id="oName" maxlength="40">
+    <div class="row"><label>Ta couleur</label><input id="oColor" type="color" value="#3b82f6"></div>
+    <hr style="border:0;border-top:1px solid var(--bd);margin:14px 0">
+    <label>Créer une famille : nom</label><input id="oFam" maxlength="80" placeholder="Famille Dupont">
+    <button class="p" id="bCreate">Créer</button>
+    <hr style="border:0;border-top:1px solid var(--bd);margin:14px 0">
+    <label>Ou rejoindre avec un code d’invitation</label><input id="oCode" placeholder="ex. a1b2c3d4">
+    <button id="bJoin">Rejoindre</button>
+    <div class="msg" id="oMsg"></div>
+    <div class="row"><button id="oBack" hidden>Retour</button><button id="bOut1">Se déconnecter</button></div>
+  </div>
+</section>
+
+<section id="app" hidden>
+  <div class="row sp">
+    <div class="row"><strong id="famName"></strong><select id="famSel" hidden></select><button id="bNewFam">+ Famille</button><button id="bCode" title="Copier le code d’invitation"></button></div>
+    <span class="row"><button id="bProf">Profil</button><button id="bOut2">Déconnexion</button></span>
+  </div>
+  <div class="row" id="chips" style="margin:10px 0"></div>
+  <div class="card">
+    <div class="row sp">
+      <div class="row"><button id="prev">‹</button><button id="next">›</button><button id="today">Aujourd’hui</button><button id="vMonth">Mois</button><button id="vWeek">Semaine</button></div>
+      <strong id="title" style="text-transform:capitalize"></strong>
+      <button class="p" id="add">+ Événement</button>
+    </div>
+    <div id="grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px">
+      <div class="dow">lun</div><div class="dow">mar</div><div class="dow">mer</div><div class="dow">jeu</div><div class="dow">ven</div><div class="dow">sam</div><div class="dow">dim</div>
+    </div>
+    <div id="cells"></div>
+  </div>
+  <div class="card" id="dayCard" style="margin-top:10px">
+    <strong id="dayTitle" style="text-transform:capitalize"></strong>
+    <div id="dayList"></div>
+  </div>
+</section>
+
+</main>
+
+<dialog id="dlg">
+  <fieldset id="fSet">
+    <h1 id="dTitle">Événement</h1>
+    <label>Titre</label><input id="fTitle" maxlength="120">
+    <label><input type="checkbox" id="fAll"> Toute la journée</label><br>
+    <label><input type="checkbox" id="fImp"> ★ Important</label>
+    <div class="row">
+      <div style="flex:1"><label>Début</label><input type="date" id="fD1"><input type="time" id="fT1"></div>
+      <div style="flex:1"><label>Fin</label><input type="date" id="fD2"><input type="time" id="fT2"></div>
+    </div>
+    <label>Lieu</label><input id="fLoc">
+    <label>Description</label><textarea id="fDesc" rows="2"></textarea>
+    <label>Qui est concerné</label>
+    <div class="who" id="fWho" style="margin:6px 0 10px"></div>
+  </fieldset>
+  <div class="msg" id="fMsg"></div>
+  <div class="row sp"><button class="d" id="fDel" hidden>Supprimer</button><span class="row" style="margin-left:auto"><button id="fDup" hidden>Dupliquer</button><button id="fCancel">Fermer</button><button class="p" id="fSave">Enregistrer</button></span></div>
+</dialog>
+
+<dialog id="ndlg">
+  <h1>Notifications</h1>
+  <p id="nWeb" hidden style="color:var(--mu)">Les notifications ne fonctionnent que dans l’application mobile. Tes choix sont quand même enregistrés.</p>
+  <label><input type="checkbox" id="nEn"> Activer les notifications</label><br>
+  <label><input type="checkbox" id="nNew"> Nouvel événement</label><br>
+  <label><input type="checkbox" id="nChg"> Événement modifié</label><br>
+  <label><input type="checkbox" id="nImp"> Seulement les événements importants (★)</label>
+  <p style="margin:12px 0 4px"><strong>Rappels avant un événement</strong></p>
+  <div id="nOff" class="who">
+    <label><input type="checkbox" value="60"> 1 heure</label>
+    <label><input type="checkbox" value="1440"> 1 jour</label>
+    <label><input type="checkbox" value="10080"> 1 semaine</label>
+    <label><input type="checkbox" value="43200"> 1 mois</label>
+  </div>
+  <div class="msg" id="nMsg"></div>
+  <div class="row sp"><button id="nClose">Fermer</button><button class="p" id="nSave">Enregistrer</button></div>
+</dialog>
+
+<dialog id="pdlg">
+  <h1>Mon profil</h1>
+  <p id="pPlan" style="color:var(--mu);margin:0 0 10px"></p>
+  <label>Prénom</label><input id="pName" maxlength="40">
+  <div class="row"><label>Ma couleur</label><input id="pColor" type="color"></div>
+  <div id="pAdmin" hidden style="margin-top:12px">
+    <label>Nom de la famille</label><input id="pFam" maxlength="80">
+    <label>Code d’invitation de la famille</label>
+    <div class="row"><code id="pCode"></code><button id="pRenew">Renouveler</button></div>
+    <small style="color:var(--mu)">Après le renouvellement, l’ancien code ne fonctionne plus.</small>
+  </div>
+  <button id="bNotif" style="margin-top:12px">Notifications…</button>
+  <div class="msg" id="pMsg"></div>
+  <div class="row sp"><button id="pClose">Fermer</button><button class="p" id="pSave">Enregistrer</button></div>
+  <hr style="border:0;border-top:1px solid var(--bd);margin:14px 0">
+  <button class="d" id="pDelAcc">Supprimer mon compte</button>
+</dialog>
+
+<script>
+const SUPABASE_URL = "https://oxctvckwjdrkqctjybfc.supabase.co";
+const SUPABASE_KEY = "sb_publishable_eUk7TWztGhed7aXSABHCsg_eCBjy1yb";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, "0");
+const ymd = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = (d, o) => new Intl.DateTimeFormat("fr-FR", o).format(d);
+const S = {user:null, fam:null, me:null, members:[], events:[], month:new Date(), sel:new Date(), off:new Set(), edit:null, ch:null, view:(innerWidth < 600 ? "week" : "month"), prefs:null, token:null};
+const isNative = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+// Accès aux plugins natifs : sans bundler, Capacitor expose Capacitor.Plugins.<Nom>
+function plug(name){
+  const C = window.Capacitor;
+  if (C && C.Plugins && C.Plugins[name]) return C.Plugins[name];
+  if (C && typeof C.registerPlugin === "function") return C.registerPlugin(name);
+  return null;
+}
+const NP_DEF = {enabled:true, notify_new:true, notify_changes:true, only_important:false, reminder_offsets:[1440]};
+
+function show(id){ ["auth","onboard","app"].forEach(x => $(x).hidden = x !== id); }
+const col = id => S.members.find(m => m.user_id === id)?.color || "#64748b";
+const who = id => S.members.find(m => m.user_id === id)?.display_name || "?";
+// Couleurs de tous les membres concernés (auteur + participants), sans doublon
+const cols = e => [...new Set([e.created_by, ...e.event_attendees.map(a => a.user_id)])].map(col);
+const grad = (cs, dir) => { const c = cs.length > 1 ? cs : [cs[0], cs[0]], n = c.length;
+  return "linear-gradient(" + dir + "," + c.map((x, i) => x + " " + (100 * i / n) + "% " + (100 * (i + 1) / n) + "%").join(",") + ")"; };
+const tint = cs => "linear-gradient(90deg," + (cs.length > 1 ? cs : [cs[0], cs[0]]).map(x => x + "40").join(",") + ")";
+
+/* ---------- Connexion ---------- */
+async function doAuth(signup){
+  const email = $("email").value.trim(), password = $("pass").value;
+  $("authMsg").textContent = "";
+  const r = signup ? await sb.auth.signUp({email, password}) : await sb.auth.signInWithPassword({email, password});
+  if (r.error) return $("authMsg").textContent = r.error.message;
+  if (signup && !r.data.session) $("authMsg").textContent = "Compte créé. Confirme ton email, puis connecte-toi.";
+}
+$("bIn").onclick = () => doAuth(false);
+$("bUp").onclick = () => doAuth(true);
+async function logout(){
+  const wait = (p, ms) => Promise.race([p, new Promise(r => setTimeout(r, ms))]);
+  try { if (S.token) await wait(sb.from("device_tokens").delete().eq("token", S.token), 3000); } catch (e) { console.warn("Déconnexion : appareil", e); }
+  try { await wait(sb.auth.signOut({scope:"local"}), 3000); } catch (e) { console.warn("Déconnexion : session", e); }
+  // Filet de sécurité : on efface la session locale même si la requête a échoué
+  try { Object.keys(localStorage).filter(k => k.startsWith("sb-")).forEach(k => localStorage.removeItem(k)); } catch {}
+  location.reload();
+}
+$("bOut1").onclick = $("bOut2").onclick = logout;
+
+let lastUid;
+sb.auth.onAuthStateChange((_e, s) => {
+  const u = s?.user || null;
+  if ((u?.id || null) === lastUid) return;
+  lastUid = u?.id || null; S.user = u;
+  setTimeout(() => boot(), 0);
+});
+
+/* ---------- Famille ---------- */
+async function boot(fid){
+  if (S.ch) { sb.removeChannel(S.ch); S.ch = null; }
+  if (!S.user) return show("auth");
+  const [m, p, n] = await Promise.all([
+    sb.from("family_members").select("family_id,role,display_name,color,joined_at,families(name,invite_code)").eq("user_id", S.user.id).order("joined_at"),
+    sb.from("user_plans").select("plan,pro_until").maybeSingle(),
+    sb.from("notification_prefs").select("*").maybeSingle()
+  ]);
+  if (m.error) return alert(m.error.message);
+  S.plan = p.data || null;
+  S.prefs = {...NP_DEF, ...(n.data || {})};
+  S.pro = !!S.plan && S.plan.plan === "pro" && (!S.plan.pro_until || new Date(S.plan.pro_until) > new Date());
+  S.all = m.data;
+  if (!S.all.length) { $("oBack").hidden = true; return show("onboard"); }
+  let want = fid; try { want = want || localStorage.getItem("famId"); } catch {}
+  S.me = S.all.find(x => x.family_id === want) || S.all[0];
+  S.fam = {id: S.me.family_id, ...S.me.families};
+  try { localStorage.setItem("famId", S.fam.id); } catch {}
+  renderFam();
+  show("app");
+  if (isNative && S.prefs.enabled) registerPush();
+  await loadMembers(); setView(S.view);
+  S.ch = sb.channel("ev-" + S.fam.id)
+    .on("postgres_changes", {event:"*", schema:"public", table:"events", filter:"family_id=eq." + S.fam.id}, loadEvents)
+    .subscribe();
+}
+function renderFam(){
+  $("famName").textContent = S.fam.name; $("famName").hidden = S.all.length > 1;
+  $("famSel").innerHTML = S.all.map(x => `<option value="${x.family_id}"${x.family_id === S.fam.id ? " selected" : ""}>${esc(x.families.name)}</option>`).join("");
+  $("famSel").hidden = S.all.length < 2;
+  $("bCode").textContent = "Code : " + S.fam.invite_code;
+}
+$("famSel").onchange = () => { S.off = new Set(); boot($("famSel").value); };
+$("bNewFam").onclick = () => {
+  if (!S.pro) return alert("Avoir plusieurs familles est réservé à l’offre Pro.");
+  $("oMsg").textContent = ""; $("oName").value = S.me.display_name; $("oColor").value = S.me.color;
+  $("oBack").hidden = false; show("onboard");
+};
+$("oBack").onclick = () => boot(S.fam.id);
+$("bCode").onclick = () => navigator.clipboard?.writeText(S.fam.invite_code).then(() => $("bCode").textContent = "Code copié");
+
+async function onboard(fn, args){
+  $("oMsg").textContent = "";
+  if (!$("oName").value.trim()) return $("oMsg").textContent = "Ton prénom est requis";
+  const {data, error} = await sb.rpc(fn, args);
+  if (error) return $("oMsg").textContent = error.message;
+  S.off = new Set(); boot(data);
+}
+$("bCreate").onclick = () => onboard("create_family", {p_name:$("oFam").value.trim() || "Ma famille", p_display_name:$("oName").value.trim(), p_color:$("oColor").value});
+$("bJoin").onclick = () => onboard("join_family", {p_code:$("oCode").value, p_display_name:$("oName").value.trim(), p_color:$("oColor").value});
+
+async function loadMembers(){
+  const {data} = await sb.from("family_members").select("user_id,display_name,color,role").eq("family_id", S.fam.id);
+  S.members = data || [];
+  $("chips").innerHTML = S.members.map(m =>
+    `<button class="chip${S.off.has(m.user_id) ? " off" : ""}" data-u="${m.user_id}"><i style="background:${m.color}"></i>${esc(m.display_name)}</button>`).join("");
+}
+$("chips").onclick = e => {
+  const b = e.target.closest("[data-u]"); if (!b) return;
+  S.off.has(b.dataset.u) ? S.off.delete(b.dataset.u) : S.off.add(b.dataset.u);
+  b.classList.toggle("off"); render();
+};
+
+/* ---------- Événements ---------- */
+async function loadEvents(){
+  let a, b;
+  if (S.view === "week") { a = weekStart(S.sel); b = new Date(a.getFullYear(), a.getMonth(), a.getDate() + 7); }
+  else { const y = S.month.getFullYear(), m = S.month.getMonth(); a = new Date(y, m, -7); b = new Date(y, m + 1, 8); }
+  const {data, error} = await sb.from("events").select("*,event_attendees(user_id)")
+    .eq("family_id", S.fam.id).lt("starts_at", b.toISOString()).gte("ends_at", a.toISOString()).order("starts_at");
+  if (error) return alert(error.message);
+  S.events = data; render();
+}
+const visible = e => [e.created_by, ...e.event_attendees.map(a => a.user_id)].some(i => !S.off.has(i));
+const onDay = k => S.events.filter(e => visible(e) && ymd(new Date(e.starts_at)) <= k && k <= ymd(new Date(e.ends_at)));
+
+function render(){
+  const todayK = ymd(new Date()), selK = ymd(S.sel), wk = S.view === "week";
+  $("grid").hidden = wk; $("dayCard").hidden = wk;
+  const people = e => esc([...new Set([e.created_by, ...e.event_attendees.map(a => a.user_id)])].map(who).join(", "));
+  if (wk){
+    const st = weekStart(S.sel), en = new Date(st.getFullYear(), st.getMonth(), st.getDate() + 6);
+    $("title").textContent = fmt(st, {day:"numeric", month:"short"}) + " – " + fmt(en, {day:"numeric", month:"short", year:"numeric"});
+    let h = "";
+    for (let i = 0; i < 7; i++){
+      const d = new Date(st.getFullYear(), st.getMonth(), st.getDate() + i), k = ymd(d), ev = onDay(k);
+      h += `<div class="wday${k === todayK ? " today" : ""}${k === selK ? " sel" : ""}" data-d="${k}"><div class="wh">${fmt(d, {weekday:"long", day:"numeric", month:"short"})}</div>`
+        + (ev.map(e => `<div class="wev" data-e="${e.id}" style="background:${tint(cols(e))}"><span class="bar" style="background:${grad(cols(e), "to bottom")}"></span><b>${e.all_day ? "Journée" : fmt(new Date(e.starts_at), {hour:"2-digit", minute:"2-digit"})}</b> ${e.important ? "★ " : ""}${esc(e.title)}${e.location ? "<br><small>" + esc(e.location) + "</small>" : ""}</div>`).join("") || "<small>Rien de prévu</small>")
+        + "</div>";
+    }
+    $("cells").style.cssText = ""; $("cells").className = "week"; $("cells").innerHTML = h;
+    return;
+  }
+  const y = S.month.getFullYear(), m = S.month.getMonth();
+  $("title").textContent = fmt(S.month, {month:"long", year:"numeric"});
+  const start = new Date(y, m, 1 - ((new Date(y, m, 1).getDay() + 6) % 7));
+  let h = "";
+  for (let i = 0; i < 42; i++){
+    const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i), k = ymd(d), ev = onDay(k);
+    h += `<div class="cell${d.getMonth() !== m ? " out" : ""}${k === todayK ? " today" : ""}${k === selK ? " sel" : ""}" data-d="${k}"><b>${d.getDate()}</b>`
+      + ev.slice(0, 3).map(e => `<i style="background:${grad(cols(e), "90deg")}">${e.important ? "★ " : ""}${esc(e.title)}</i>`).join("")
+      + (ev.length > 3 ? `<small>+${ev.length - 3}</small>` : "") + "</div>";
+  }
+  $("cells").className = ""; $("cells").style.cssText = "display:grid;grid-template-columns:repeat(7,1fr);gap:4px";
+  $("cells").innerHTML = h;
+  $("dayTitle").textContent = fmt(S.sel, {weekday:"long", day:"numeric", month:"long"});
+  const list = onDay(selK);
+  $("dayList").innerHTML = list.length ? list.map(e => {
+    const t = e.all_day ? "Toute la journée" : fmt(new Date(e.starts_at), {hour:"2-digit", minute:"2-digit"}) + " – " + fmt(new Date(e.ends_at), {hour:"2-digit", minute:"2-digit"});
+    return `<div class="ev" data-e="${e.id}"><u style="background:${grad(cols(e), "to bottom")}"></u><div><strong>${e.important ? "★ " : ""}${esc(e.title)}</strong><br><small>${t}${e.location ? " · " + esc(e.location) : ""}<br>${people(e)}</small></div></div>`;
+  }).join("") : `<p style="color:var(--mu)">Rien de prévu.</p>`;
+}
+
+$("cells").onclick = e => {
+  const ev = e.target.closest("[data-e]");
+  if (ev) return openDlg(S.events.find(v => v.id === ev.dataset.e));
+  const c = e.target.closest("[data-d]"); if (!c) return;
+  S.sel = new Date(c.dataset.d + "T00:00");
+  if (S.view === "month" && S.sel.getMonth() !== S.month.getMonth()) { S.month = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); loadEvents(); } else render();
+};
+$("dayList").onclick = e => { const x = e.target.closest("[data-e]"); if (x) openDlg(S.events.find(v => v.id === x.dataset.e)); };
+const weekStart = d => new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
+const go = n => {
+  if (S.view === "week") { S.sel = new Date(S.sel.getFullYear(), S.sel.getMonth(), S.sel.getDate() + 7 * n); S.month = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); }
+  else S.month = new Date(S.month.getFullYear(), S.month.getMonth() + n, 1);
+  loadEvents();
+};
+$("prev").onclick = () => go(-1); $("next").onclick = () => go(1);
+$("today").onclick = () => { S.month = new Date(); S.sel = new Date(); loadEvents(); };
+function setView(v){
+  S.view = v;
+  $("vMonth").classList.toggle("p", v === "month"); $("vWeek").classList.toggle("p", v === "week");
+  loadEvents();
+}
+$("vMonth").onclick = () => setView("month"); $("vWeek").onclick = () => setView("week");
+
+/* ---------- Profil et code d’invitation ---------- */
+$("bProf").onclick = () => {
+  $("pName").value = S.me.display_name; $("pColor").value = S.me.color; $("pMsg").textContent = "";
+  $("pAdmin").hidden = !["owner", "admin"].includes(S.me.role); $("pFam").value = S.fam.name;
+  $("pCode").textContent = S.fam.invite_code;
+  $("pPlan").textContent = S.pro
+    ? "Offre Pro" + (S.plan.pro_until ? " jusqu’au " + fmt(new Date(S.plan.pro_until), {day:"numeric", month:"long", year:"numeric"}) : "") + " : plusieurs familles."
+    : "Offre gratuite : 1 famille. L’offre Pro permet d’en avoir plusieurs.";
+  $("pdlg").showModal();
+};
+$("pClose").onclick = () => $("pdlg").close();
+$("pDelAcc").onclick = async () => {
+  if (!confirm("Supprimer définitivement ton compte ?\n\n• Tes événements créés seront supprimés pour toute la famille.\n• Si tu es propriétaire et que d’autres membres existent, la propriété leur est transférée.\n• Si tu es seul dans la famille, elle est supprimée.\n\nCette action est irréversible.")) return;
+  if ((prompt("Pour confirmer, tape SUPPRIMER") || "").trim().toUpperCase() !== "SUPPRIMER") return;
+  const {error} = await sb.rpc("delete_my_account");
+  if (error) return $("pMsg").textContent = error.message;
+  await sb.auth.signOut({scope:"local"});
+  $("pdlg").close(); alert("Ton compte a été supprimé.");
+};
+$("pSave").onclick = async () => {
+  const n = $("pName").value.trim();
+  if (!n) return $("pMsg").textContent = "Le prénom est requis";
+  const c = $("pColor").value;
+  const {error} = await sb.from("family_members").update({display_name:n, color:c}).eq("family_id", S.fam.id).eq("user_id", S.user.id);
+  if (error) return $("pMsg").textContent = error.message;
+  const fam = $("pFam").value.trim();
+  if (!$("pAdmin").hidden && fam && fam !== S.fam.name) {
+    const r = await sb.from("families").update({name:fam}).eq("id", S.fam.id);
+    if (r.error) return $("pMsg").textContent = r.error.message;
+    S.fam.name = fam; S.me.families.name = fam; renderFam();
+  }
+  S.me.display_name = n; S.me.color = c;
+  $("pdlg").close(); await loadMembers(); render();
+};
+$("pRenew").onclick = async () => {
+  if (!confirm("Renouveler le code ? L’ancien code ne fonctionnera plus.")) return;
+  const code = [...crypto.getRandomValues(new Uint8Array(4))].map(x => x.toString(16).padStart(2, "0")).join("");
+  const {error} = await sb.from("families").update({invite_code:code}).eq("id", S.fam.id);
+  if (error) return $("pMsg").textContent = error.message;
+  S.fam.invite_code = code; S.me.families.invite_code = code; $("pCode").textContent = code; renderFam();
+};
+
+/* ---------- Fenêtre d’événement ---------- */
+function openDlg(ev){
+  S.edit = ev || null;
+  const can = !ev || ev.created_by === S.user.id || ["owner","admin"].includes(S.me.role);
+  const a = ev ? new Date(ev.starts_at) : S.sel, b = ev ? new Date(ev.ends_at) : S.sel;
+  const hm = d => pad(d.getHours()) + ":" + pad(d.getMinutes());
+  $("dTitle").textContent = ev ? "Modifier l’événement" : "Nouvel événement";
+  $("fTitle").value = ev?.title || ""; $("fLoc").value = ev?.location || ""; $("fDesc").value = ev?.description || "";
+  $("fAll").checked = !!ev?.all_day; $("fImp").checked = !!ev?.important;
+  $("fD1").value = ymd(a); $("fD2").value = ymd(b);
+  $("fT1").value = ev ? hm(a) : "09:00"; $("fT2").value = ev ? hm(b) : "10:00";
+  const ids = ev ? ev.event_attendees.map(x => x.user_id) : [S.user.id];
+  $("fWho").innerHTML = S.members.map(m => `<label><input type="checkbox" value="${m.user_id}"${ids.includes(m.user_id) ? " checked" : ""}> ${esc(m.display_name)}</label>`).join("");
+  $("fMsg").textContent = ""; tAll();
+  $("fSet").disabled = !can; $("fSave").hidden = !can; $("fDel").hidden = !(ev && can); $("fDup").hidden = !ev;
+  $("dlg").showModal();
+}
+function tAll(){ $("fT1").hidden = $("fT2").hidden = $("fAll").checked; }
+$("fAll").onchange = tAll;
+$("add").onclick = () => openDlg(null);
+$("fCancel").onclick = () => $("dlg").close();
+$("fDup").onclick = () => {
+  S.edit = null;
+  $("dTitle").textContent = "Copie : choisis la nouvelle date";
+  $("fSet").disabled = false; $("fSave").hidden = false; $("fDel").hidden = true; $("fDup").hidden = true;
+  $("fD1").focus();
+};
+
+$("fSave").onclick = async () => {
+  const t = $("fTitle").value.trim(), all = $("fAll").checked;
+  if (!t) return $("fMsg").textContent = "Le titre est requis";
+  const s = new Date($("fD1").value + "T" + (all ? "00:00" : $("fT1").value || "00:00"));
+  const e = new Date(($("fD2").value || $("fD1").value) + "T" + (all ? "23:59" : $("fT2").value || "00:00"));
+  if (isNaN(s) || isNaN(e) || e < s) return $("fMsg").textContent = "Dates invalides";
+  const row = {title:t, description:$("fDesc").value.trim() || null, location:$("fLoc").value.trim() || null,
+    starts_at:s.toISOString(), ends_at:e.toISOString(), all_day:all, important:$("fImp").checked};
+  const ids = [...document.querySelectorAll("#fWho input:checked")].map(x => x.value);
+  let id = S.edit?.id, r;
+  if (id) r = await sb.from("events").update(row).eq("id", id);
+  else { r = await sb.from("events").insert({...row, family_id:S.fam.id, created_by:S.user.id}).select("id").single(); id = r.data?.id; }
+  if (r.error) return $("fMsg").textContent = r.error.message;
+  await sb.from("event_attendees").delete().eq("event_id", id);
+  if (ids.length){
+    const q = await sb.from("event_attendees").insert(ids.map(u => ({event_id:id, user_id:u})));
+    if (q.error) return $("fMsg").textContent = q.error.message;
+  }
+  $("dlg").close(); loadEvents();
+};
+$("fDel").onclick = async () => {
+  if (!confirm("Supprimer cet événement ?")) return;
+  const r = await sb.from("events").delete().eq("id", S.edit.id);
+  if (r.error) return $("fMsg").textContent = r.error.message;
+  $("dlg").close(); loadEvents();
+};
+
+/* ---------- Notifications ---------- */
+async function registerPush(){
+  if (!isNative) return;
+  try {
+    const FM = plug("FirebaseMessaging");
+    if (!FM) throw new Error("Plugin FirebaseMessaging absent");
+    const perm = await FM.requestPermissions();
+    if (perm.receive !== "granted") return;
+    const {token} = await FM.getToken();
+    S.token = token;
+    await sb.rpc("register_device", {p_token:token, p_platform:Capacitor.getPlatform()});
+  } catch (e) { console.warn("Notifications indisponibles", e); }
+}
+$("bNotif").onclick = () => {
+  const p = S.prefs;
+  $("nEn").checked = p.enabled; $("nNew").checked = p.notify_new; $("nChg").checked = p.notify_changes; $("nImp").checked = p.only_important;
+  document.querySelectorAll("#nOff input").forEach(i => i.checked = p.reminder_offsets.includes(+i.value));
+  $("nWeb").hidden = isNative; $("nMsg").textContent = "";
+  $("pdlg").close(); $("ndlg").showModal();
+};
+$("nClose").onclick = () => $("ndlg").close();
+$("nSave").onclick = async () => {
+  const p = {user_id:S.user.id, enabled:$("nEn").checked, notify_new:$("nNew").checked, notify_changes:$("nChg").checked,
+    only_important:$("nImp").checked, updated_at:new Date().toISOString(),
+    reminder_offsets:[...document.querySelectorAll("#nOff input:checked")].map(i => +i.value)};
+  const {error} = await sb.from("notification_prefs").upsert(p);
+  if (error) return $("nMsg").textContent = error.message;
+  S.prefs = p; $("ndlg").close();
+  if (p.enabled) registerPush();
+};
+
+
+sb.auth.getSession().then(({data}) => { if (!data.session) show("auth"); });
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>

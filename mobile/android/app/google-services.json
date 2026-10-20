@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "671193298262",
+    "project_id": "calendy-ee1c9",
+    "storage_bucket": "calendy-ee1c9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:671193298262:android:7e10f6eef71aafe10452f7",
+        "android_client_info": {
+          "package_name": "com.bendark.calendy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAckBXmE1_q_qiuP8BJ859Idqks1YbzKoY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

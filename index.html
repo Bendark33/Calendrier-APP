@@ -51,7 +51,8 @@ select{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px
 .wday{border:1px solid var(--bd);border-radius:10px;padding:8px;min-height:140px;background:var(--card);cursor:pointer}
 .wday.today .wh{color:var(--ac)}.wday.sel{outline:2px solid var(--ac)}
 .wh{font-weight:600;font-size:13px;text-transform:capitalize;margin-bottom:6px}
-.wev{border-left:4px solid;padding:4px 6px;margin-top:6px;font-size:13px;background:var(--bg);border-radius:6px}
+.wev{position:relative;padding:7px 8px 7px 16px;margin-top:6px;font-size:13px;background:var(--bg);border-radius:8px;cursor:pointer}
+.wev .bar{position:absolute;left:0;top:0;bottom:0;width:8px;border-radius:8px 0 0 8px}
 .wev small,.wday>small{color:var(--mu)}
 @media (max-width:760px){.week{grid-template-columns:1fr}.wday{min-height:0}}
 </style>
@@ -127,10 +128,6 @@ select{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px
   <div class="row sp"><button class="d" id="fDel" hidden>Supprimer</button><span class="row" style="margin-left:auto"><button id="fDup" hidden>Dupliquer</button><button id="fCancel">Fermer</button><button class="p" id="fSave">Enregistrer</button></span></div>
 </dialog>
 
-<div id="lock" hidden style="position:fixed;inset:0;z-index:99;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px">
-  <h1>Calendy</h1><div class="msg" id="lockMsg"></div><button class="p" id="bUnlock">Déverrouiller</button>
-</div>
-
 <dialog id="ndlg">
   <h1>Notifications</h1>
   <p id="nWeb" hidden style="color:var(--mu)">Les notifications ne fonctionnent que dans l’application mobile. Tes choix sont quand même enregistrés.</p>
@@ -154,13 +151,12 @@ select{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px
   <p id="pPlan" style="color:var(--mu);margin:0 0 10px"></p>
   <label>Prénom</label><input id="pName" maxlength="40">
   <div class="row"><label>Ma couleur</label><input id="pColor" type="color"></div>
+  <div class="row" style="margin-top:12px"><label>Code de la famille</label><code id="pCode"></code><button id="bPro">Version Pro</button></div>
   <div id="pAdmin" hidden style="margin-top:12px">
     <label>Nom de la famille</label><input id="pFam" maxlength="80">
-    <label>Code d’invitation de la famille</label>
-    <div class="row"><code id="pCode"></code><button id="pRenew">Renouveler</button></div>
+    <button id="pRenew">Renouveler le code d’invitation</button><br>
     <small style="color:var(--mu)">Après le renouvellement, l’ancien code ne fonctionne plus.</small>
   </div>
-  <label id="pBioRow" hidden style="display:block;margin-top:12px"><input type="checkbox" id="pBio"> Verrouiller avec l’empreinte ou le code du téléphone</label>
   <button id="bNotif" style="margin-top:12px">Notifications…</button>
   <div class="msg" id="pMsg"></div>
   <div class="row sp"><button id="pClose">Fermer</button><button class="p" id="pSave">Enregistrer</button></div>
@@ -180,11 +176,23 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;
 const fmt = (d, o) => new Intl.DateTimeFormat("fr-FR", o).format(d);
 const S = {user:null, fam:null, me:null, members:[], events:[], month:new Date(), sel:new Date(), off:new Set(), edit:null, ch:null, view:(innerWidth < 600 ? "week" : "month"), prefs:null, token:null};
 const isNative = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+// Accès aux plugins natifs : sans bundler, Capacitor expose Capacitor.Plugins.<Nom>
+function plug(name){
+  const C = window.Capacitor;
+  if (C && C.Plugins && C.Plugins[name]) return C.Plugins[name];
+  if (C && typeof C.registerPlugin === "function") return C.registerPlugin(name);
+  return null;
+}
 const NP_DEF = {enabled:true, notify_new:true, notify_changes:true, only_important:false, reminder_offsets:[1440]};
 
 function show(id){ ["auth","onboard","app"].forEach(x => $(x).hidden = x !== id); }
 const col = id => S.members.find(m => m.user_id === id)?.color || "#64748b";
 const who = id => S.members.find(m => m.user_id === id)?.display_name || "?";
+// Couleurs de tous les membres concernés (auteur + participants), sans doublon
+const cols = e => [...new Set([e.created_by, ...e.event_attendees.map(a => a.user_id)])].map(col);
+const grad = (cs, dir) => { const c = cs.length > 1 ? cs : [cs[0], cs[0]], n = c.length;
+  return "linear-gradient(" + dir + "," + c.map((x, i) => x + " " + (100 * i / n) + "% " + (100 * (i + 1) / n) + "%").join(",") + ")"; };
+const tint = cs => "linear-gradient(90deg," + (cs.length > 1 ? cs : [cs[0], cs[0]]).map(x => x + "40").join(",") + ")";
 
 /* ---------- Connexion ---------- */
 async function doAuth(signup){
@@ -197,8 +205,12 @@ async function doAuth(signup){
 $("bIn").onclick = () => doAuth(false);
 $("bUp").onclick = () => doAuth(true);
 async function logout(){
-  try { if (S.token) await sb.from("device_tokens").delete().eq("token", S.token); } catch {}
-  await sb.auth.signOut();
+  const wait = (p, ms) => Promise.race([p, new Promise(r => setTimeout(r, ms))]);
+  try { if (S.token) await wait(sb.from("device_tokens").delete().eq("token", S.token), 3000); } catch (e) { console.warn("Déconnexion : appareil", e); }
+  try { await wait(sb.auth.signOut({scope:"local"}), 3000); } catch (e) { console.warn("Déconnexion : session", e); }
+  // Filet de sécurité : on efface la session locale même si la requête a échoué
+  try { Object.keys(localStorage).filter(k => k.startsWith("sb-")).forEach(k => localStorage.removeItem(k)); } catch {}
+  location.reload();
 }
 $("bOut1").onclick = $("bOut2").onclick = logout;
 
@@ -298,7 +310,7 @@ function render(){
     for (let i = 0; i < 7; i++){
       const d = new Date(st.getFullYear(), st.getMonth(), st.getDate() + i), k = ymd(d), ev = onDay(k);
       h += `<div class="wday${k === todayK ? " today" : ""}${k === selK ? " sel" : ""}" data-d="${k}"><div class="wh">${fmt(d, {weekday:"long", day:"numeric", month:"short"})}</div>`
-        + (ev.map(e => `<div class="wev" data-e="${e.id}" style="border-left-color:${col(e.created_by)}"><b>${e.all_day ? "Journée" : fmt(new Date(e.starts_at), {hour:"2-digit", minute:"2-digit"})}</b> ${e.important ? "★ " : ""}${esc(e.title)}<br><small>${people(e)}${e.location ? " · " + esc(e.location) : ""}</small></div>`).join("") || "<small>Rien de prévu</small>")
+        + (ev.map(e => `<div class="wev" data-e="${e.id}" style="background:${tint(cols(e))}"><span class="bar" style="background:${grad(cols(e), "to bottom")}"></span><b>${e.all_day ? "Journée" : fmt(new Date(e.starts_at), {hour:"2-digit", minute:"2-digit"})}</b> ${e.important ? "★ " : ""}${esc(e.title)}${e.location ? "<br><small>" + esc(e.location) + "</small>" : ""}</div>`).join("") || "<small>Rien de prévu</small>")
         + "</div>";
     }
     $("cells").style.cssText = ""; $("cells").className = "week"; $("cells").innerHTML = h;
@@ -311,7 +323,7 @@ function render(){
   for (let i = 0; i < 42; i++){
     const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i), k = ymd(d), ev = onDay(k);
     h += `<div class="cell${d.getMonth() !== m ? " out" : ""}${k === todayK ? " today" : ""}${k === selK ? " sel" : ""}" data-d="${k}"><b>${d.getDate()}</b>`
-      + ev.slice(0, 3).map(e => `<i style="background:${col(e.created_by)}">${e.important ? "★ " : ""}${esc(e.title)}</i>`).join("")
+      + ev.slice(0, 3).map(e => `<i style="background:${grad(cols(e), "90deg")}">${e.important ? "★ " : ""}${esc(e.title)}</i>`).join("")
       + (ev.length > 3 ? `<small>+${ev.length - 3}</small>` : "") + "</div>";
   }
   $("cells").className = ""; $("cells").style.cssText = "display:grid;grid-template-columns:repeat(7,1fr);gap:4px";
@@ -320,7 +332,7 @@ function render(){
   const list = onDay(selK);
   $("dayList").innerHTML = list.length ? list.map(e => {
     const t = e.all_day ? "Toute la journée" : fmt(new Date(e.starts_at), {hour:"2-digit", minute:"2-digit"}) + " – " + fmt(new Date(e.ends_at), {hour:"2-digit", minute:"2-digit"});
-    return `<div class="ev" data-e="${e.id}"><u style="background:${col(e.created_by)}"></u><div><strong>${e.important ? "★ " : ""}${esc(e.title)}</strong><br><small>${t}${e.location ? " · " + esc(e.location) : ""}<br>${people(e)}</small></div></div>`;
+    return `<div class="ev" data-e="${e.id}"><u style="background:${grad(cols(e), "to bottom")}"></u><div><strong>${e.important ? "★ " : ""}${esc(e.title)}</strong><br><small>${t}${e.location ? " · " + esc(e.location) : ""}<br>${people(e)}</small></div></div>`;
   }).join("") : `<p style="color:var(--mu)">Rien de prévu.</p>`;
 }
 
@@ -350,12 +362,12 @@ $("vMonth").onclick = () => setView("month"); $("vWeek").onclick = () => setView
 /* ---------- Profil et code d’invitation ---------- */
 $("bProf").onclick = () => {
   $("pName").value = S.me.display_name; $("pColor").value = S.me.color; $("pMsg").textContent = "";
-  $("pBioRow").hidden = !isNative; $("pBio").checked = bioOn();
   $("pAdmin").hidden = !["owner", "admin"].includes(S.me.role); $("pFam").value = S.fam.name;
   $("pCode").textContent = S.fam.invite_code;
   $("pPlan").textContent = S.pro
-    ? "Offre Pro" + (S.plan.pro_until ? " jusqu’au " + fmt(new Date(S.plan.pro_until), {day:"numeric", month:"long", year:"numeric"}) : "") + " : plusieurs familles."
-    : "Offre gratuite : 1 famille. L’offre Pro permet d’en avoir plusieurs.";
+    ? "Offre Pro" + (S.plan.pro_until ? " jusqu’au " + fmt(new Date(S.plan.pro_until), {day:"numeric", month:"long", year:"numeric"}) : "")
+    : "Offre classique";
+  $("bPro").hidden = S.pro;
   $("pdlg").showModal();
 };
 $("pClose").onclick = () => $("pdlg").close();
@@ -449,7 +461,8 @@ $("fDel").onclick = async () => {
 async function registerPush(){
   if (!isNative) return;
   try {
-    const FM = Capacitor.registerPlugin("FirebaseMessaging");
+    const FM = plug("FirebaseMessaging");
+    if (!FM) throw new Error("Plugin FirebaseMessaging absent");
     const perm = await FM.requestPermissions();
     if (perm.receive !== "granted") return;
     const {token} = await FM.getToken();
@@ -475,34 +488,6 @@ $("nSave").onclick = async () => {
   if (p.enabled) registerPush();
 };
 
-/* ---------- Verrouillage biométrique (application mobile) ---------- */
-const BA = isNative ? Capacitor.registerPlugin("BiometricAuth") : null;
-const bioOn = () => { try { return localStorage.getItem("bioLock") === "1"; } catch { return false; } };
-const setBio = v => { try { localStorage.setItem("bioLock", v ? "1" : "0"); } catch {} };
-async function unlock(){
-  $("lockMsg").textContent = "";
-  const c = await BA.checkBiometry().catch(() => null);
-  if (!c || (!c.isAvailable && !c.deviceIsSecure)) { setBio(false); $("lock").hidden = true; return; }
-  try {
-    await BA.authenticate({reason:"Déverrouiller le calendrier", cancelTitle:"Annuler", allowDeviceCredential:true, androidTitle:"Calendy"});
-    $("lock").hidden = true;
-  } catch { $("lockMsg").textContent = "Authentification échouée. Réessaie."; }
-}
-function lockNow(){ if (isNative && bioOn()) { $("lock").hidden = false; unlock(); } }
-$("bUnlock").onclick = unlock;
-let hiddenAt = 0;
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) hiddenAt = Date.now();
-  else if (hiddenAt && Date.now() - hiddenAt > 30000) lockNow();
-});
-$("pBio").onchange = async () => {
-  if (!$("pBio").checked) return setBio(false);
-  try {
-    await BA.authenticate({reason:"Activer le verrouillage", cancelTitle:"Annuler", allowDeviceCredential:true, androidTitle:"Calendy"});
-    setBio(true);
-  } catch { $("pBio").checked = false; $("pMsg").textContent = "Activation annulée."; }
-};
-lockNow();
 
 sb.auth.getSession().then(({data}) => { if (!data.session) show("auth"); });
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
