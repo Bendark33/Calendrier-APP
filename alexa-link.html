@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Associer Calendy à Alexa</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--tx:#1b1f2a;--mu:#667085;--bd:#e3e6ee;--ac:#3b82f6;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1218;--card:#181c25;--tx:#e8eaf0;--mu:#98a2b3;--bd:#2a303c;--ac:#60a5fa;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx);padding:12px}
+main{max-width:400px;margin:6vh auto 0;background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px}
+h1{font-size:20px;margin:0 0 10px}
+label{font-size:13px;color:var(--mu)}
+input{width:100%;padding:10px;margin:4px 0 10px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:inherit;font:inherit}
+button{padding:10px 14px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:inherit;font:inherit;cursor:pointer}
+button.p{background:var(--ac);border-color:var(--ac);color:#fff}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.msg{color:#ef4444;font-size:13px;min-height:18px;margin:6px 0}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <h1>Associer Calendy à Alexa</h1>
+
+  <div id="bad" hidden><p>Ce lien n’est pas valide. Lance l’association depuis l’application Alexa.</p></div>
+
+  <div id="login" hidden>
+    <p>Connecte-toi à ton compte Calendy pour autoriser Alexa.</p>
+    <label>Email</label><input id="email" type="email" autocomplete="email">
+    <label>Mot de passe</label><input id="pass" type="password" autocomplete="current-password">
+    <div class="msg" id="loginMsg"></div>
+    <button class="p" id="bIn" style="width:100%">Se connecter</button>
+  </div>
+
+  <div id="consent" hidden>
+    <p>Connecté en tant que <strong id="who"></strong>.</p>
+    <p>Autoriser Alexa à <strong>créer des événements</strong> dans ton calendrier Calendy ? Tu pourras retirer cet accès à tout moment.</p>
+    <div class="msg" id="consentMsg"></div>
+    <div class="row">
+      <button class="p" id="bOk">Autoriser</button>
+      <button id="bNo">Annuler</button>
+      <button id="bOther">Changer de compte</button>
+    </div>
+  </div>
+</main>
+
+<script>
+const sb = supabase.createClient("https://oxctvckwjdrkqctjybfc.supabase.co", "sb_publishable_eUk7TWztGhed7aXSABHCsg_eCBjy1yb");
+const $ = id => document.getElementById(id);
+const q = new URLSearchParams(location.search);
+const redirect = q.get("redirect_uri") || "", state = q.get("state") || "";
+const okRedirect = /^https:\/\/(pitangui\.amazon\.com|layla\.amazon\.com|alexa\.amazon\.co\.jp)\/api\/skill\/link\/[A-Za-z0-9]+$/.test(redirect);
+const valid = q.get("response_type") === "code" && q.get("client_id") === "calendy-alexa" && okRedirect && state;
+
+function back(params){ location.replace(redirect + "?" + new URLSearchParams({...params, state}).toString()); }
+
+async function init(){
+  if (!valid) { $("bad").hidden = false; return; }
+  const {data} = await sb.auth.getSession();
+  if (data.session) { $("who").textContent = data.session.user.email; $("consent").hidden = false; }
+  else $("login").hidden = false;
+}
+$("bIn").onclick = async () => {
+  $("loginMsg").textContent = "";
+  const {error} = await sb.auth.signInWithPassword({email:$("email").value.trim(), password:$("pass").value});
+  if (error) return $("loginMsg").textContent = error.message;
+  $("login").hidden = true; init();
+};
+$("bOk").onclick = async () => {
+  $("consentMsg").textContent = "";
+  const {data, error} = await sb.rpc("alexa_issue_code", {p_redirect_uri: redirect});
+  if (error) return $("consentMsg").textContent = error.message;
+  back({code: data});
+};
+$("bNo").onclick = () => back({error: "access_denied"});
+$("bOther").onclick = async () => { await sb.auth.signOut(); $("consent").hidden = true; $("login").hidden = false; };
+init();
+</script>
+</body>
+</html>
