@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Calendy</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#F4F1FB">
+<meta name="theme-color" content="#FFC93C">
 <script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,22 +13,37 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
-:root{--bg:#F4F1FB;--card:#FFFFFF;--tx:#1D1B33;--mu:#5F5C78;--bd:#E3DDF2;--fill:#ECE8FB;--bar:rgba(255,255,255,.78);--ac:#5B4BDB;--pt:#FFFFFF;--dg:#D1303A;color-scheme:light}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#13102A;--card:#1E1A3A;--tx:#F4F2FF;--mu:#B3AED4;--bd:#322D58;--fill:#2C2650;--bar:rgba(30,26,58,.78);--ac:#9F94FF;--pt:#13102A;--dg:#FF8A91;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#13102A;--card:#1E1A3A;--tx:#F4F2FF;--mu:#B3AED4;--bd:#322D58;--fill:#2C2650;--bar:rgba(30,26,58,.78);--ac:#9F94FF;--pt:#13102A;--dg:#FF8A91;color-scheme:dark}
+:root{--bg:#FFF8E5;--card:#FFFFFF;--tx:#3D1F56;--mu:#6B4A7A;--bd:#F0E3C2;--fill:#FFEFC2;--bar:rgba(255,255,255,.80);--ac:#D63A2E;--pt:#FFFFFF;--dg:#B4232A;color-scheme:light}
+:root[data-theme="dark"]{--bg:#241437;--card:#33204A;--tx:#FFF1D6;--mu:#D8C3E6;--bd:#4A3563;--fill:#43295E;--bar:rgba(51,32,74,.82);--ac:#FFC93C;--pt:#2A1440;--dg:#FF9A8A;color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0;font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",Inter,system-ui,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--tx);padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) 0 env(safe-area-inset-left,0)}
-main{max-width:980px;margin:0 auto;padding:12px 16px calc(110px + env(safe-area-inset-bottom,0px))}
+body{margin:0;font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",Inter,system-ui,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--tx);padding:0 env(safe-area-inset-right,0) 0 env(safe-area-inset-left,0)}
+main{max-width:980px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top,0px)) 16px calc(110px + env(safe-area-inset-bottom,0px))}
 section[hidden],[hidden]{display:none!important}
-.hello h1{font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin:16px 0 4px}
-.hello p{margin:0 0 16px;color:var(--mu);font-size:17px}
+.hello{margin:calc(-12px - env(safe-area-inset-top,0px)) -16px 16px;padding:calc(env(safe-area-inset-top,0px) + 30px) 20px 18px;background:#FFC93C;color:#3D1F56;border-radius:0 0 36px 36px}
+.hello h1{font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin:0 0 4px;color:#3D1F56}
+.hello p{margin:0;font-size:16px;font-weight:600;color:#3D1F56}
+.avs{display:flex;margin-top:14px;padding-left:10px}
+.av{width:42px;height:42px;border-radius:50%;border:3px solid #FFC93C;margin-left:-10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:19px}
+.strip{display:flex;justify-content:space-between;margin-top:18px}
+.strip button{background:none;color:#3D1F56;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;font-weight:700}
+.strip .n{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700}
+.strip .sel .n{background:#FFFFFF;color:#3D1F56}
+.strip .today .n{background:#3D1F56;color:#FFFFFF}
+.strip .today.sel .n{box-shadow:0 0 0 3px #FFFFFF}
+.menu{background:#FFFFFF73;width:44px;height:44px;padding:0;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#3D1F56;margin-bottom:12px}
+.dbg{position:fixed;inset:0;z-index:19;background:#24143780;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .25s}
+.dbg.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;bottom:0;left:0;width:min(84vw,320px);z-index:20;background:var(--card);color:var(--tx);padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px));border-radius:0 24px 24px 0;box-shadow:8px 0 30px #00000040;display:flex;flex-direction:column;gap:10px;transform:translateX(-102%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s linear .28s;overflow:auto}
+.drawer.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s}
+.drawer button{width:100%;text-align:left;display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;font-size:16px}
+.drawer #dClose{width:auto}
 .card{background:var(--card);border:0;border-radius:20px;padding:16px}
 .narrow{max-width:400px;margin:8vh auto 0}
 h1{font-size:24px;font-weight:700;letter-spacing:-.01em;margin:0 0 12px}
 input,button,textarea,select{font:inherit;color:inherit}
 input:not([type=checkbox]):not([type=color]),textarea{width:100%;padding:11px 14px;margin:4px 0 10px;border:0;border-radius:12px;background:var(--fill)}
 input[type=color]{width:48px;height:36px;border:0;border-radius:10px;background:var(--fill);padding:3px}
-button{padding:9px 16px;border:0;border-radius:12px;background:var(--fill);color:var(--ac);cursor:pointer;font-weight:600}
+button{padding:9px 16px;border:0;border-radius:12px;background:var(--fill);color:var(--tx);cursor:pointer;font-weight:600}
 button.p{background:var(--ac);color:var(--pt)}
 button.d{color:var(--dg)}
 label{font-size:14px;color:var(--mu)}
@@ -41,7 +56,7 @@ label{font-size:14px;color:var(--mu)}
 .tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(100%,520px);z-index:5;display:flex;align-items:flex-end;justify-content:space-around;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);border-top:1px solid var(--bd);border-radius:22px 22px 0 0}
 .tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;color:var(--mu);padding:4px 0;border-radius:10px;font-size:11px;font-weight:600}
 .tabbar button.p{background:none;color:var(--ac)}
-.tabbar .plus{width:50px;height:50px;border-radius:50%;background:var(--ac);color:var(--pt);display:flex;align-items:center;justify-content:center;margin-top:-22px;box-shadow:0 8px 18px #5B4BDB55}
+.tabbar .plus{width:50px;height:50px;border-radius:50%;background:var(--ac);color:var(--pt);display:flex;align-items:center;justify-content:center;margin-top:-22px;box-shadow:0 8px 18px #00000040}
 .chip{display:inline-flex;gap:8px;align-items:center;padding:7px 14px;border-radius:99px;background:var(--card);color:var(--tx)}
 .chip i{width:12px;height:12px;border-radius:50%;display:inline-block}
 .chip.off{opacity:.45}
@@ -50,14 +65,14 @@ label{font-size:14px;color:var(--mu)}
 .cell{min-height:80px;padding:6px;border:0;border-radius:12px;background:var(--bg);cursor:pointer;overflow:hidden}
 .cell.out{opacity:.45}.cell.sel{outline:2px solid var(--ac)}
 .cell b{font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;border-radius:50%}
-.cell.today b{background:#E8453C;color:#FFFFFF}
+.cell.today b{background:#D63A2E;color:#FFFFFF}
 .cell i{display:block;font-style:normal;font-size:11px;color:#fff;border-radius:6px;padding:1px 5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cell small{color:var(--mu);font-size:11px}
 .ev{display:flex;gap:12px;padding:12px;border:0;border-radius:14px;background:var(--bg);margin-top:8px;cursor:pointer}
 .ev u{width:6px;border-radius:4px;flex:none}
 .ev small{color:var(--mu)}
 dialog{border:0;border-radius:20px;background:var(--card);color:var(--tx);width:min(460px,94vw);padding:20px}
-dialog::backdrop{background:#0F0B2A80;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+dialog::backdrop{background:#24143780;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
 dialog[open]{animation:sheet .3s cubic-bezier(.2,.8,.2,1)}
 @keyframes sheet{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
 fieldset{border:0;padding:0;margin:0}
@@ -68,12 +83,12 @@ dialog{width:100%;max-width:none;margin:auto 0 0;border-radius:24px 24px 0 0;max
 dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;background:var(--bd);margin:0 auto 14px}}
 select{padding:8px 12px;border:0;border-radius:12px;background:var(--fill);color:var(--tx)}
 .week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:8px}
-.wday{border:0;border-radius:18px;padding:12px;min-height:150px;color:#1D1B33;cursor:pointer}
+.wday{border:0;border-radius:18px;padding:12px;min-height:150px;color:#3D1F56;cursor:pointer}
 .wday.sel{outline:2px solid var(--ac)}
-.wh{font-weight:700;font-size:15px;text-transform:capitalize;margin-bottom:6px;color:#1D1B33}
-.wev{position:relative;padding:10px 12px 10px 22px;margin-top:8px;font-size:15px;font-weight:600;background:#FFFFFF;color:#1D1B33;border-radius:12px;cursor:pointer}
+.wh{font-weight:700;font-size:15px;text-transform:capitalize;margin-bottom:6px;color:#3D1F56}
+.wev{position:relative;padding:10px 12px 10px 22px;margin-top:8px;font-size:15px;font-weight:600;background:#FFFFFF;color:#3D1F56;border-radius:12px;cursor:pointer}
 .wev .bar{position:absolute;left:0;top:0;bottom:0;width:8px;border-radius:12px 0 0 12px}
-.wev small,.wday>small{color:#4F4C69;font-weight:400}
+.wev small,.wday>small{color:#5C3F6C;font-weight:400}
 @media (max-width:760px){.week{grid-template-columns:1fr}.wday{min-height:0}}
 </style>
 </head>
@@ -118,11 +133,7 @@ select{padding:8px 12px;border:0;border-radius:12px;background:var(--fill);color
 </section>
 
 <section id="app" hidden>
-  <div class="hello"><h1 id="hello"></h1><p id="helloSub"></p></div>
-  <div class="row sp">
-    <div class="row"><strong id="famName"></strong><select id="famSel" hidden></select><button id="bNewFam">+ Famille</button><button id="bCode" title="Copier le code d’invitation"></button></div>
-    <button id="bOut2">Déconnexion</button>
-  </div>
+  <div class="hello"><button id="bMenu" class="menu" aria-label="Ouvrir le menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><h1 id="hello"></h1><p id="helloSub"></p><div class="avs" id="helloAv"></div><div class="strip" id="helloStrip"></div></div>
   <div class="row" id="chips" style="margin:10px 0"></div>
   <div class="card">
     <div class="row sp">
@@ -144,6 +155,17 @@ select{padding:8px 12px;border:0;border-radius:12px;background:var(--fill);color
     <button id="add" aria-label="Ajouter un événement"><span class="plus"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>Ajouter</button>
     <button id="bProf"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg>Profil</button>
   </nav>
+  <div class="dbg" id="dbg"></div>
+  <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Menu">
+    <div class="row sp"><h1 style="margin:0">Calendy</h1><button id="dClose" aria-label="Fermer le menu" style="padding:8px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <label>Ma famille</label>
+    <strong id="famName" style="font-size:18px"></strong><select id="famSel" hidden></select>
+    <button id="bNewFam"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Ajouter une famille</button>
+    <label style="margin-top:6px">Code de la famille (touche pour copier)</label>
+    <button id="bCode" title="Copier le code d’invitation"></button>
+    <button id="bShare"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M8 7.5l4-4 4 4"/><path d="M7 11H5.5A1.5 1.5 0 0 0 4 12.5v6A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5v-6a1.5 1.5 0 0 0-1.5-1.5H17"/></svg>Partager la famille</button>
+    <button id="bOut2" class="d" style="margin-top:auto"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3M16 8l4 4-4 4M20 12H9"/></svg>Se déconnecter</button>
+  </aside>
 </section>
 
 </main>
@@ -190,6 +212,14 @@ select{padding:8px 12px;border:0;border-radius:12px;background:var(--fill);color
   <div class="row sp"><button id="nClose">Fermer</button><button class="p" id="nSave">Enregistrer</button></div>
 </dialog>
 
+<dialog id="idlg">
+  <h1>Partager la famille</h1>
+  <label>Message</label>
+  <textarea id="iMsg" rows="9"></textarea>
+  <div class="row" style="margin-top:6px"><button id="iWa">WhatsApp</button><button id="iSms">SMS</button><button id="iMail">E-mail</button><button id="iCopy">Copier</button></div>
+  <div class="row sp" style="margin-top:14px"><button id="iClose">Fermer</button></div>
+</dialog>
+
 <dialog id="rdlg">
   <h1>Signaler un problème</h1>
   <label>Type</label>
@@ -205,7 +235,7 @@ select{padding:8px 12px;border:0;border-radius:12px;background:var(--fill);color
   <h1>Mon profil</h1>
   <p id="pPlan" style="color:var(--mu);margin:0 0 10px"></p>
   <label>Apparence</label>
-  <div class="seg" id="pTheme" style="display:flex;margin:4px 0 12px"><button data-t="auto" style="flex:1">Auto</button><button data-t="light" style="flex:1">Clair</button><button data-t="dark" style="flex:1">Sombre</button></div>
+  <div class="seg" id="pTheme" style="display:flex;margin:4px 0 12px"><button data-t="light" style="flex:1">Clair</button><button data-t="dark" style="flex:1">Sombre</button></div>
   <label>Prénom</label><input id="pName" maxlength="40">
   <div class="row"><label>Ma couleur</label><input id="pColor" type="color"></div>
   <div class="row" style="margin-top:12px"><label>Code de la famille</label><code id="pCode"></code></div>
@@ -270,6 +300,39 @@ $("bUp").onclick = async () => {
   if (r.error) return $("signupMsg").textContent = r.error.message;
   if (!r.data.session) { authMode("login"); $("email").value = email; $("loginMsg").textContent = "Compte créé. Confirme ton email, puis connecte-toi."; }
 };
+function openDrawer(){
+  $("bCode").textContent = "Code : " + S.fam.invite_code;
+  $("drawer").classList.add("open"); $("dbg").classList.add("open"); $("drawer").setAttribute("aria-hidden", "false");
+}
+function closeDrawer(){
+  $("drawer").classList.remove("open"); $("dbg").classList.remove("open"); $("drawer").setAttribute("aria-hidden", "true");
+}
+$("bMenu").onclick = openDrawer; $("dbg").onclick = closeDrawer; $("dClose").onclick = closeDrawer;
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
+$("drawer").addEventListener("click", e => { if (e.target.closest("#bNewFam, #bOut2")) closeDrawer(); });
+/* ---------- Partager la famille ---------- */
+const SITE_URL = "https://calendrier-app.benjamin33370.workers.dev";
+function inviteText(){
+  return `Salut !\n\nJe t’invite à rejoindre notre famille « ${S.fam.name} » sur Calendy.\n\n1. Ouvre ${SITE_URL} et crée un compte.\n2. Choisis « Rejoindre avec un code d’invitation » et saisis : ${S.fam.invite_code}\n\nÀ très vite !\n${S.me.display_name}`;
+}
+function showShareFallback(){ $("iCopy").textContent = "Copier"; $("iMsg").value = inviteText(); $("idlg").showModal(); }
+async function shareFamily(){
+  const text = inviteText(), title = "Rejoins " + S.fam.name + " sur Calendy";
+  try {
+    const Sh = isNative ? plug("Share") : null;
+    if (Sh) { await Sh.share({title, text, dialogTitle:"Partager la famille"}); return; }
+    if (navigator.share) { await navigator.share({title, text}); return; }
+  } catch (e) {
+    if (e && (e.name === "AbortError" || /cancel/i.test(e.message || ""))) return;   // l’utilisateur a fermé la feuille
+  }
+  showShareFallback();
+}
+$("bShare").onclick = () => { closeDrawer(); shareFamily(); };
+$("iClose").onclick = () => $("idlg").close();
+$("iCopy").onclick = () => navigator.clipboard?.writeText($("iMsg").value).then(() => $("iCopy").textContent = "Copié");
+$("iWa").onclick = () => window.open("https://wa.me/?text=" + encodeURIComponent($("iMsg").value), "_blank");
+$("iSms").onclick = () => { location.href = "sms:?&body=" + encodeURIComponent($("iMsg").value); };
+$("iMail").onclick = () => { location.href = "mailto:?subject=" + encodeURIComponent("Invitation à rejoindre « " + S.fam.name + " » sur Calendy") + "&body=" + encodeURIComponent($("iMsg").value); };
 async function logout(){
   const wait = (p, ms) => Promise.race([p, new Promise(r => setTimeout(r, ms))]);
   try { if (S.token) await wait(sb.from("device_tokens").delete().eq("token", S.token), 3000); } catch (e) { console.warn("Déconnexion : appareil", e); }
@@ -323,7 +386,7 @@ function renderFam(){
   $("famSel").hidden = S.all.length < 2;
   $("bCode").textContent = "Code : " + S.fam.invite_code;
 }
-$("famSel").onchange = () => { S.off = new Set(); boot($("famSel").value); };
+$("famSel").onchange = () => { S.off = new Set(); closeDrawer(); boot($("famSel").value); };
 $("bNewFam").onclick = () => {
   if (!S.pro) return alert("Avoir plusieurs familles est réservé à l’offre Pro.");
   $("oMsg").textContent = ""; $("oName").value = S.me.display_name; $("oColor").value = S.me.color;
@@ -389,12 +452,27 @@ function expand(list, a, b){
   }
   return out;
 }
-const PASTELS = ["#CDF3E4", "#FFF0B8", "#DDE8FF", "#FFE1F0", "#E7F7C9", "#E8DEFF"];
+const PASTELS = ["#CDF3E4", "#D6EEFF", "#FFE1D6", "#EAE0F8", "#E7F7C9", "#FFE6F0"];
 const mark = e => (e.confidential ? "🔒 " : "") + (e.important ? "★ " : "") + (e.recurrence && e.recurrence !== "none" ? "↻ " : "");
 const visible = e => [e.created_by, ...e.event_attendees.map(a => a.user_id)].some(i => !S.off.has(i));
 const onDay = k => S.events.filter(e => visible(e) && ymd(new Date(e.starts_at)) <= k && k <= ymd(new Date(e.ends_at)));
 
+const lumText = c => { const n = parseInt(c.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 128 ? "#2A1A00" : "#FFFFFF"; };
+function renderHead(){
+  $("helloAv").innerHTML = S.members.map(m => `<span class="av" title="${esc(m.display_name)}" style="background:${m.color};color:${lumText(m.color)}">${esc(m.display_name.slice(0, 1).toUpperCase())}</span>`).join("");
+  const st = weekStart(S.sel), todayK = ymd(new Date()), selK = ymd(S.sel);
+  $("helloStrip").innerHTML = [0, 1, 2, 3, 4, 5, 6].map(i => {
+    const d = new Date(st.getFullYear(), st.getMonth(), st.getDate() + i), k = ymd(d);
+    return `<button data-d="${k}" class="${k === todayK ? "today " : ""}${k === selK ? "sel" : ""}" aria-label="${fmt(d, {weekday:"long", day:"numeric", month:"long"})}"><span>${fmt(d, {weekday:"narrow"}).toUpperCase()}</span><span class="n">${d.getDate()}</span></button>`;
+  }).join("");
+}
+$("helloStrip").onclick = e => {
+  const b = e.target.closest("[data-d]"); if (!b) return;
+  S.sel = new Date(b.dataset.d + "T00:00");
+  if (S.view === "month" && S.sel.getMonth() !== S.month.getMonth()) { S.month = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); loadEvents(); } else render();
+};
 function render(){
+  renderHead();
   const todayK = ymd(new Date()), selK = ymd(S.sel), wk = S.view === "week";
   $("grid").hidden = wk; $("dayCard").hidden = wk;
   const people = e => esc([...new Set([e.created_by, ...e.event_attendees.map(a => a.user_id)])].map(who).join(", "));
@@ -404,7 +482,7 @@ function render(){
     let h = "";
     for (let i = 0; i < 7; i++){
       const d = new Date(st.getFullYear(), st.getMonth(), st.getDate() + i), k = ymd(d), ev = onDay(k);
-      h += `<div class="wday${k === todayK ? " today" : ""}${k === selK ? " sel" : ""}" data-d="${k}" style="background:${k === todayK ? "#FFD9C7" : PASTELS[i % PASTELS.length]}"><div class="wh">${k === todayK ? "Aujourd’hui · " : ""}${fmt(d, {weekday:"long", day:"numeric", month:"short"})}</div>`
+      h += `<div class="wday${k === todayK ? " today" : ""}${k === selK ? " sel" : ""}" data-d="${k}" style="background:${k === todayK ? "#FFE9A8" : PASTELS[i % PASTELS.length]}"><div class="wh">${k === todayK ? "Aujourd’hui · " : ""}${fmt(d, {weekday:"long", day:"numeric", month:"short"})}</div>`
         + (ev.map(e => `<div class="wev" data-e="${e.id}"><span class="bar" style="background:${grad(cols(e), "to bottom")}"></span><b>${e.all_day ? "Journée" : fmt(new Date(e.starts_at), {hour:"2-digit", minute:"2-digit"})}</b> ${mark(e)}${esc(e.title)}${e.location ? "<br><small>" + esc(e.location) + "</small>" : ""}</div>`).join("") || "<small>Rien de prévu</small>")
         + "</div>";
     }
@@ -607,14 +685,15 @@ $("nSave").onclick = async () => {
 /* ---------- Apparence ---------- */
 function applyTheme(t){
   const r = document.documentElement;
-  if (t === "light" || t === "dark") r.dataset.theme = t; else delete r.dataset.theme;
+  if (t !== "dark") t = "light";
+  r.dataset.theme = t;
   try { localStorage.setItem("theme", t); } catch {}
   document.querySelectorAll("#pTheme button").forEach(b => b.classList.toggle("p", b.dataset.t === t));
-  const dark = t === "dark" || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
-  document.querySelector('meta[name="theme-color"]').content = dark ? "#13102A" : "#F4F1FB";
+  const dark = t === "dark";
+  document.querySelector('meta[name="theme-color"]').content = dark ? "#241437" : "#FFC93C";
 }
 $("pTheme").onclick = e => { const b = e.target.closest("[data-t]"); if (b) applyTheme(b.dataset.t); };
-{ let t = "auto"; try { t = localStorage.getItem("theme") || "auto"; } catch {} applyTheme(t); }
+{ let t = "light"; try { t = localStorage.getItem("theme") || "light"; } catch {} applyTheme(t); }
 
 sb.auth.getSession().then(({data}) => { if (!data.session) show("auth"); });
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
