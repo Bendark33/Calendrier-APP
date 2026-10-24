@@ -5,55 +5,64 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Calendy</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#3b82f6">
+<meta name="theme-color" content="#2B2350">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap">
 <link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
-:root{--bg:#f6f7fb;--card:#fff;--tx:#1b1f2a;--mu:#667085;--bd:#e3e6ee;--ac:#3b82f6;color-scheme:light}
-@media (prefers-color-scheme:dark){:root{--bg:#0f1218;--card:#181c25;--tx:#e8eaf0;--mu:#98a2b3;--bd:#2a303c;--ac:#60a5fa;color-scheme:dark}}
+:root{--bg:#EFE9FF;--card:#FFFFFF;--tx:#2B2350;--mu:#4A4270;--bd:#DDD3F5;--ac:#2B2350;--pt:#FFFFFF;--dg:#B4232A;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#171230;--card:#241E45;--tx:#F1EDFF;--mu:#BDB4E0;--bd:#3A3262;--ac:#C9BCFF;--pt:#171230;--dg:#FF8A91;color-scheme:dark}}
 *{box-sizing:border-box}
-body{margin:0;font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx);padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
-main{max-width:980px;margin:0 auto;padding:12px}
+body{margin:0;font:16px/1.4 'Outfit',system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx);padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
+main{max-width:980px;margin:0 auto;padding:12px 14px 100px}
 section[hidden],[hidden]{display:none!important}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px}
+.hello h1{font-size:32px;font-weight:600;line-height:1.1;margin:18px 0 4px}
+.hello p{margin:0 0 16px;color:var(--mu)}
+.card{background:var(--card);border:0;border-radius:28px;padding:18px}
 .narrow{max-width:400px;margin:8vh auto 0}
-h1{font-size:20px;margin:0 0 12px}
-input,button,textarea{font:inherit;color:inherit}
-input:not([type=checkbox]):not([type=color]),textarea{width:100%;padding:10px;margin:4px 0 10px;border:1px solid var(--bd);border-radius:10px;background:var(--bg)}
-input[type=color]{width:48px;height:36px;border:1px solid var(--bd);border-radius:8px;background:none;padding:2px}
-button{padding:9px 14px;border:1px solid var(--bd);border-radius:10px;background:var(--card);cursor:pointer}
-button.p{background:var(--ac);border-color:var(--ac);color:#fff}
-button.d{color:#ef4444}
-label{font-size:13px;color:var(--mu)}
-.msg{color:#ef4444;font-size:13px;min-height:18px;margin:6px 0}
+h1{font-size:24px;font-weight:600;margin:0 0 12px}
+input,button,textarea,select{font:inherit;color:inherit}
+input:not([type=checkbox]):not([type=color]),textarea{width:100%;padding:11px 14px;margin:4px 0 10px;border:1px solid var(--bd);border-radius:14px;background:var(--bg)}
+input[type=color]{width:48px;height:36px;border:1px solid var(--bd);border-radius:10px;background:none;padding:2px}
+button{padding:10px 18px;border:0;border-radius:99px;background:var(--card);box-shadow:inset 0 0 0 1px var(--bd);cursor:pointer;font-weight:500}
+button.p{background:var(--ac);color:var(--pt);box-shadow:none}
+button.d{color:var(--dg)}
+label{font-size:14px;color:var(--mu)}
+.msg{color:var(--dg);font-size:14px;min-height:18px;margin:6px 0}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .sp{justify-content:space-between}
-.chip{display:inline-flex;gap:6px;align-items:center;padding:5px 10px;border-radius:99px}
-.chip i{width:10px;height:10px;border-radius:50%;display:inline-block}
-.chip.off{opacity:.4}
-#grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
-.dow{text-align:center;font-size:12px;color:var(--mu);margin-top:8px}
-.cell{min-height:78px;padding:4px;border:1px solid var(--bd);border-radius:10px;background:var(--card);cursor:pointer;overflow:hidden}
-.cell.out{opacity:.45}.cell.today b{color:var(--ac)}.cell.sel{outline:2px solid var(--ac)}
-.cell b{font-size:12px}
-.cell i{display:block;font-style:normal;font-size:11px;color:#fff;border-radius:4px;padding:1px 4px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg{display:inline-flex;background:var(--card);border-radius:99px;padding:5px;margin-bottom:14px}
+.seg button{box-shadow:none;background:transparent;padding:9px 22px;font-weight:600}
+.seg button.p{background:var(--ac);color:var(--pt)}
+.fab{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));height:56px;padding:0 26px;font-size:17px;font-weight:600;box-shadow:0 10px 24px #2B235066;z-index:5}
+.chip{display:inline-flex;gap:8px;align-items:center;padding:7px 14px;border-radius:99px;background:var(--card);box-shadow:none}
+.chip i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.chip.off{opacity:.45}
+#grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
+.dow{text-align:center;font-size:13px;font-weight:600;color:var(--mu);margin-top:8px}
+.cell{min-height:80px;padding:6px;border:0;border-radius:16px;background:var(--bg);cursor:pointer;overflow:hidden}
+.cell.out{opacity:.45}.cell.today{background:#FFD9C7;color:#2B2350}.cell.sel{outline:2px solid var(--ac)}
+.cell b{font-size:13px;font-weight:600}
+.cell i{display:block;font-style:normal;font-size:11px;color:#fff;border-radius:6px;padding:1px 5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cell small{color:var(--mu);font-size:11px}
-.ev{display:flex;gap:10px;padding:10px;border:1px solid var(--bd);border-radius:10px;margin-top:8px;cursor:pointer}
-.ev u{width:5px;border-radius:3px;flex:none}
+.ev{display:flex;gap:12px;padding:12px;border:0;border-radius:18px;background:var(--bg);margin-top:8px;cursor:pointer}
+.ev u{width:6px;border-radius:4px;flex:none}
 .ev small{color:var(--mu)}
-dialog{border:1px solid var(--bd);border-radius:14px;background:var(--card);color:var(--tx);width:min(460px,94vw);padding:16px}
-dialog::backdrop{background:#0008}
+dialog{border:0;border-radius:28px;background:var(--card);color:var(--tx);width:min(460px,94vw);padding:20px}
+dialog::backdrop{background:#17123099}
 fieldset{border:0;padding:0;margin:0}
 .who label{display:inline-flex;gap:4px;align-items:center;margin-right:10px;color:var(--tx)}
 @media (max-width:600px){.cell{min-height:58px}.cell i{height:6px;font-size:0;padding:0}}
-select{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx)}
-.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
-.wday{border:1px solid var(--bd);border-radius:10px;padding:8px;min-height:140px;background:var(--card);cursor:pointer}
-.wday.today .wh{color:var(--ac)}.wday.sel{outline:2px solid var(--ac)}
-.wh{font-weight:600;font-size:13px;text-transform:capitalize;margin-bottom:6px}
-.wev{position:relative;padding:7px 8px 7px 16px;margin-top:6px;font-size:13px;background:var(--bg);border-radius:8px;cursor:pointer}
-.wev .bar{position:absolute;left:0;top:0;bottom:0;width:8px;border-radius:8px 0 0 8px}
-.wev small,.wday>small{color:var(--mu)}
+select{padding:8px 12px;border:1px solid var(--bd);border-radius:14px;background:var(--card);color:var(--tx)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-top:8px}
+.wday{border:0;border-radius:24px;padding:14px;min-height:150px;color:#2B2350;cursor:pointer}
+.wday.sel{outline:2px solid var(--ac)}
+.wh{font-weight:700;font-size:15px;text-transform:capitalize;margin-bottom:6px;color:#2B2350}
+.wev{position:relative;padding:10px 12px 10px 22px;margin-top:8px;font-size:15px;font-weight:600;background:#FFFFFF;color:#2B2350;border-radius:16px;cursor:pointer}
+.wev .bar{position:absolute;left:0;top:0;bottom:0;width:8px;border-radius:16px 0 0 16px}
+.wev small,.wday>small{color:#4A4270;font-weight:400}
 @media (max-width:760px){.week{grid-template-columns:1fr}.wday{min-height:0}}
 </style>
 </head>
@@ -98,16 +107,18 @@ select{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px
 </section>
 
 <section id="app" hidden>
+  <div class="hello"><h1 id="hello"></h1><p id="helloSub"></p></div>
   <div class="row sp">
     <div class="row"><strong id="famName"></strong><select id="famSel" hidden></select><button id="bNewFam">+ Famille</button><button id="bCode" title="Copier le code d’invitation"></button></div>
     <span class="row"><button id="bProf">Profil</button><button id="bOut2">Déconnexion</button></span>
   </div>
   <div class="row" id="chips" style="margin:10px 0"></div>
+  <div class="seg"><button id="vWeek">Semaine</button><button id="vMonth">Mois</button></div>
   <div class="card">
     <div class="row sp">
-      <div class="row"><button id="prev">‹</button><button id="next">›</button><button id="today">Aujourd’hui</button><button id="vMonth">Mois</button><button id="vWeek">Semaine</button></div>
+      <div class="row"><button id="prev">‹</button><button id="next">›</button><button id="today">Aujourd’hui</button></div>
       <strong id="title" style="text-transform:capitalize"></strong>
-      <button class="p" id="add">+ Événement</button>
+      <button class="p fab" id="add">+ Ajouter</button>
     </div>
     <div id="grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px">
       <div class="dow">lun</div><div class="dow">mar</div><div class="dow">mer</div><div class="dow">jeu</div><div class="dow">ven</div><div class="dow">sam</div><div class="dow">dim</div>
@@ -288,6 +299,8 @@ async function boot(fid){
     .subscribe();
 }
 function renderFam(){
+  $("hello").textContent = "Salut " + S.me.display_name;
+  $("helloSub").textContent = "La semaine de " + S.fam.name;
   $("famName").textContent = S.fam.name; $("famName").hidden = S.all.length > 1;
   $("famSel").innerHTML = S.all.map(x => `<option value="${x.family_id}"${x.family_id === S.fam.id ? " selected" : ""}>${esc(x.families.name)}</option>`).join("");
   $("famSel").hidden = S.all.length < 2;
@@ -359,6 +372,7 @@ function expand(list, a, b){
   }
   return out;
 }
+const PASTELS = ["#CDF3E4", "#FFF0B8", "#DDE8FF", "#FFE1F0", "#E7F7C9", "#E8DEFF"];
 const mark = e => (e.confidential ? "🔒 " : "") + (e.important ? "★ " : "") + (e.recurrence && e.recurrence !== "none" ? "↻ " : "");
 const visible = e => [e.created_by, ...e.event_attendees.map(a => a.user_id)].some(i => !S.off.has(i));
 const onDay = k => S.events.filter(e => visible(e) && ymd(new Date(e.starts_at)) <= k && k <= ymd(new Date(e.ends_at)));
@@ -373,8 +387,8 @@ function render(){
     let h = "";
     for (let i = 0; i < 7; i++){
       const d = new Date(st.getFullYear(), st.getMonth(), st.getDate() + i), k = ymd(d), ev = onDay(k);
-      h += `<div class="wday${k === todayK ? " today" : ""}${k === selK ? " sel" : ""}" data-d="${k}"><div class="wh">${fmt(d, {weekday:"long", day:"numeric", month:"short"})}</div>`
-        + (ev.map(e => `<div class="wev" data-e="${e.id}" style="background:${tint(cols(e))}"><span class="bar" style="background:${grad(cols(e), "to bottom")}"></span><b>${e.all_day ? "Journée" : fmt(new Date(e.starts_at), {hour:"2-digit", minute:"2-digit"})}</b> ${mark(e)}${esc(e.title)}${e.location ? "<br><small>" + esc(e.location) + "</small>" : ""}</div>`).join("") || "<small>Rien de prévu</small>")
+      h += `<div class="wday${k === todayK ? " today" : ""}${k === selK ? " sel" : ""}" data-d="${k}" style="background:${k === todayK ? "#FFD9C7" : PASTELS[i % PASTELS.length]}"><div class="wh">${k === todayK ? "Aujourd’hui · " : ""}${fmt(d, {weekday:"long", day:"numeric", month:"short"})}</div>`
+        + (ev.map(e => `<div class="wev" data-e="${e.id}"><span class="bar" style="background:${grad(cols(e), "to bottom")}"></span><b>${e.all_day ? "Journée" : fmt(new Date(e.starts_at), {hour:"2-digit", minute:"2-digit"})}</b> ${mark(e)}${esc(e.title)}${e.location ? "<br><small>" + esc(e.location) + "</small>" : ""}</div>`).join("") || "<small>Rien de prévu</small>")
         + "</div>";
     }
     $("cells").style.cssText = ""; $("cells").className = "week"; $("cells").innerHTML = h;
@@ -455,7 +469,7 @@ $("pSave").onclick = async () => {
     S.fam.name = fam; S.me.families.name = fam; renderFam();
   }
   S.me.display_name = n; S.me.color = c;
-  $("pdlg").close(); await loadMembers(); render();
+  $("pdlg").close(); await loadMembers(); renderFam(); render();
 };
 $("pRenew").onclick = async () => {
   if (!confirm("Renouveler le code ? L’ancien code ne fonctionnera plus.")) return;
