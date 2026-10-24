@@ -5,64 +5,75 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Calendy</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#2B2350">
+<meta name="theme-color" content="#F4F1FB">
+<script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
-:root{--bg:#EFE9FF;--card:#FFFFFF;--tx:#2B2350;--mu:#4A4270;--bd:#DDD3F5;--ac:#2B2350;--pt:#FFFFFF;--dg:#B4232A;color-scheme:light}
-@media (prefers-color-scheme:dark){:root{--bg:#171230;--card:#241E45;--tx:#F1EDFF;--mu:#BDB4E0;--bd:#3A3262;--ac:#C9BCFF;--pt:#171230;--dg:#FF8A91;color-scheme:dark}}
+:root{--bg:#F4F1FB;--card:#FFFFFF;--tx:#1D1B33;--mu:#5F5C78;--bd:#E3DDF2;--fill:#ECE8FB;--bar:rgba(255,255,255,.78);--ac:#5B4BDB;--pt:#FFFFFF;--dg:#D1303A;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#13102A;--card:#1E1A3A;--tx:#F4F2FF;--mu:#B3AED4;--bd:#322D58;--fill:#2C2650;--bar:rgba(30,26,58,.78);--ac:#9F94FF;--pt:#13102A;--dg:#FF8A91;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#13102A;--card:#1E1A3A;--tx:#F4F2FF;--mu:#B3AED4;--bd:#322D58;--fill:#2C2650;--bar:rgba(30,26,58,.78);--ac:#9F94FF;--pt:#13102A;--dg:#FF8A91;color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0;font:16px/1.4 'Outfit',system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx);padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
-main{max-width:980px;margin:0 auto;padding:12px 14px 100px}
+body{margin:0;font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",Inter,system-ui,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--tx);padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) 0 env(safe-area-inset-left,0)}
+main{max-width:980px;margin:0 auto;padding:12px 16px calc(110px + env(safe-area-inset-bottom,0px))}
 section[hidden],[hidden]{display:none!important}
-.hello h1{font-size:32px;font-weight:600;line-height:1.1;margin:18px 0 4px}
-.hello p{margin:0 0 16px;color:var(--mu)}
-.card{background:var(--card);border:0;border-radius:28px;padding:18px}
+.hello h1{font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin:16px 0 4px}
+.hello p{margin:0 0 16px;color:var(--mu);font-size:17px}
+.card{background:var(--card);border:0;border-radius:20px;padding:16px}
 .narrow{max-width:400px;margin:8vh auto 0}
-h1{font-size:24px;font-weight:600;margin:0 0 12px}
+h1{font-size:24px;font-weight:700;letter-spacing:-.01em;margin:0 0 12px}
 input,button,textarea,select{font:inherit;color:inherit}
-input:not([type=checkbox]):not([type=color]),textarea{width:100%;padding:11px 14px;margin:4px 0 10px;border:1px solid var(--bd);border-radius:14px;background:var(--bg)}
-input[type=color]{width:48px;height:36px;border:1px solid var(--bd);border-radius:10px;background:none;padding:2px}
-button{padding:10px 18px;border:0;border-radius:99px;background:var(--card);box-shadow:inset 0 0 0 1px var(--bd);cursor:pointer;font-weight:500}
-button.p{background:var(--ac);color:var(--pt);box-shadow:none}
+input:not([type=checkbox]):not([type=color]),textarea{width:100%;padding:11px 14px;margin:4px 0 10px;border:0;border-radius:12px;background:var(--fill)}
+input[type=color]{width:48px;height:36px;border:0;border-radius:10px;background:var(--fill);padding:3px}
+button{padding:9px 16px;border:0;border-radius:12px;background:var(--fill);color:var(--ac);cursor:pointer;font-weight:600}
+button.p{background:var(--ac);color:var(--pt)}
 button.d{color:var(--dg)}
 label{font-size:14px;color:var(--mu)}
 .msg{color:var(--dg);font-size:14px;min-height:18px;margin:6px 0}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .sp{justify-content:space-between}
-.seg{display:inline-flex;background:var(--card);border-radius:99px;padding:5px;margin-bottom:14px}
-.seg button{box-shadow:none;background:transparent;padding:9px 22px;font-weight:600}
-.seg button.p{background:var(--ac);color:var(--pt)}
-.fab{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));height:56px;padding:0 26px;font-size:17px;font-weight:600;box-shadow:0 10px 24px #2B235066;z-index:5}
-.chip{display:inline-flex;gap:8px;align-items:center;padding:7px 14px;border-radius:99px;background:var(--card);box-shadow:none}
+.seg{display:inline-flex;background:var(--fill);border-radius:10px;padding:3px}
+.seg button{background:transparent;color:var(--tx);padding:7px 18px;border-radius:8px}
+.seg button.p{background:var(--card);color:var(--tx);box-shadow:0 1px 3px #0003}
+.tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(100%,520px);z-index:5;display:flex;align-items:flex-end;justify-content:space-around;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);border-top:1px solid var(--bd);border-radius:22px 22px 0 0}
+.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;color:var(--mu);padding:4px 0;border-radius:10px;font-size:11px;font-weight:600}
+.tabbar button.p{background:none;color:var(--ac)}
+.tabbar .plus{width:50px;height:50px;border-radius:50%;background:var(--ac);color:var(--pt);display:flex;align-items:center;justify-content:center;margin-top:-22px;box-shadow:0 8px 18px #5B4BDB55}
+.chip{display:inline-flex;gap:8px;align-items:center;padding:7px 14px;border-radius:99px;background:var(--card);color:var(--tx)}
 .chip i{width:12px;height:12px;border-radius:50%;display:inline-block}
 .chip.off{opacity:.45}
-#grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
+#grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
 .dow{text-align:center;font-size:13px;font-weight:600;color:var(--mu);margin-top:8px}
-.cell{min-height:80px;padding:6px;border:0;border-radius:16px;background:var(--bg);cursor:pointer;overflow:hidden}
-.cell.out{opacity:.45}.cell.today{background:#FFD9C7;color:#2B2350}.cell.sel{outline:2px solid var(--ac)}
-.cell b{font-size:13px;font-weight:600}
+.cell{min-height:80px;padding:6px;border:0;border-radius:12px;background:var(--bg);cursor:pointer;overflow:hidden}
+.cell.out{opacity:.45}.cell.sel{outline:2px solid var(--ac)}
+.cell b{font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;border-radius:50%}
+.cell.today b{background:#E8453C;color:#FFFFFF}
 .cell i{display:block;font-style:normal;font-size:11px;color:#fff;border-radius:6px;padding:1px 5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cell small{color:var(--mu);font-size:11px}
-.ev{display:flex;gap:12px;padding:12px;border:0;border-radius:18px;background:var(--bg);margin-top:8px;cursor:pointer}
+.ev{display:flex;gap:12px;padding:12px;border:0;border-radius:14px;background:var(--bg);margin-top:8px;cursor:pointer}
 .ev u{width:6px;border-radius:4px;flex:none}
 .ev small{color:var(--mu)}
-dialog{border:0;border-radius:28px;background:var(--card);color:var(--tx);width:min(460px,94vw);padding:20px}
-dialog::backdrop{background:#17123099}
+dialog{border:0;border-radius:20px;background:var(--card);color:var(--tx);width:min(460px,94vw);padding:20px}
+dialog::backdrop{background:#0F0B2A80;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+dialog[open]{animation:sheet .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes sheet{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
 fieldset{border:0;padding:0;margin:0}
 .who label{display:inline-flex;gap:4px;align-items:center;margin-right:10px;color:var(--tx)}
-@media (max-width:600px){.cell{min-height:58px}.cell i{height:6px;font-size:0;padding:0}}
-select{padding:8px 12px;border:1px solid var(--bd);border-radius:14px;background:var(--card);color:var(--tx)}
-.week{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-top:8px}
-.wday{border:0;border-radius:24px;padding:14px;min-height:150px;color:#2B2350;cursor:pointer}
+@media (max-width:600px){
+.cell{min-height:58px}.cell i{height:6px;font-size:0;padding:0}
+dialog{width:100%;max-width:none;margin:auto 0 0;border-radius:24px 24px 0 0;max-height:92vh;overflow:auto;padding:12px 20px calc(20px + env(safe-area-inset-bottom,0px))}
+dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;background:var(--bd);margin:0 auto 14px}}
+select{padding:8px 12px;border:0;border-radius:12px;background:var(--fill);color:var(--tx)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:8px}
+.wday{border:0;border-radius:18px;padding:12px;min-height:150px;color:#1D1B33;cursor:pointer}
 .wday.sel{outline:2px solid var(--ac)}
-.wh{font-weight:700;font-size:15px;text-transform:capitalize;margin-bottom:6px;color:#2B2350}
-.wev{position:relative;padding:10px 12px 10px 22px;margin-top:8px;font-size:15px;font-weight:600;background:#FFFFFF;color:#2B2350;border-radius:16px;cursor:pointer}
-.wev .bar{position:absolute;left:0;top:0;bottom:0;width:8px;border-radius:16px 0 0 16px}
-.wev small,.wday>small{color:#4A4270;font-weight:400}
+.wh{font-weight:700;font-size:15px;text-transform:capitalize;margin-bottom:6px;color:#1D1B33}
+.wev{position:relative;padding:10px 12px 10px 22px;margin-top:8px;font-size:15px;font-weight:600;background:#FFFFFF;color:#1D1B33;border-radius:12px;cursor:pointer}
+.wev .bar{position:absolute;left:0;top:0;bottom:0;width:8px;border-radius:12px 0 0 12px}
+.wev small,.wday>small{color:#4F4C69;font-weight:400}
 @media (max-width:760px){.week{grid-template-columns:1fr}.wday{min-height:0}}
 </style>
 </head>
@@ -110,15 +121,13 @@ select{padding:8px 12px;border:1px solid var(--bd);border-radius:14px;background
   <div class="hello"><h1 id="hello"></h1><p id="helloSub"></p></div>
   <div class="row sp">
     <div class="row"><strong id="famName"></strong><select id="famSel" hidden></select><button id="bNewFam">+ Famille</button><button id="bCode" title="Copier le code d’invitation"></button></div>
-    <span class="row"><button id="bProf">Profil</button><button id="bOut2">Déconnexion</button></span>
+    <button id="bOut2">Déconnexion</button>
   </div>
   <div class="row" id="chips" style="margin:10px 0"></div>
-  <div class="seg"><button id="vWeek">Semaine</button><button id="vMonth">Mois</button></div>
   <div class="card">
     <div class="row sp">
       <div class="row"><button id="prev">‹</button><button id="next">›</button><button id="today">Aujourd’hui</button></div>
       <strong id="title" style="text-transform:capitalize"></strong>
-      <button class="p fab" id="add">+ Ajouter</button>
     </div>
     <div id="grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px">
       <div class="dow">lun</div><div class="dow">mar</div><div class="dow">mer</div><div class="dow">jeu</div><div class="dow">ven</div><div class="dow">sam</div><div class="dow">dim</div>
@@ -129,6 +138,12 @@ select{padding:8px 12px;border:1px solid var(--bd);border-radius:14px;background
     <strong id="dayTitle" style="text-transform:capitalize"></strong>
     <div id="dayList"></div>
   </div>
+  <nav class="tabbar" aria-label="Navigation">
+    <button id="vWeek"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3M8 14h8"/></svg>Semaine</button>
+    <button id="vMonth"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3M8.5 14h.01M12 14h.01M15.5 14h.01M8.5 17h.01M12 17h.01"/></svg>Mois</button>
+    <button id="add" aria-label="Ajouter un événement"><span class="plus"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>Ajouter</button>
+    <button id="bProf"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg>Profil</button>
+  </nav>
 </section>
 
 </main>
@@ -189,6 +204,8 @@ select{padding:8px 12px;border:1px solid var(--bd);border-radius:14px;background
 <dialog id="pdlg">
   <h1>Mon profil</h1>
   <p id="pPlan" style="color:var(--mu);margin:0 0 10px"></p>
+  <label>Apparence</label>
+  <div class="seg" id="pTheme" style="display:flex;margin:4px 0 12px"><button data-t="auto" style="flex:1">Auto</button><button data-t="light" style="flex:1">Clair</button><button data-t="dark" style="flex:1">Sombre</button></div>
   <label>Prénom</label><input id="pName" maxlength="40">
   <div class="row"><label>Ma couleur</label><input id="pColor" type="color"></div>
   <div class="row" style="margin-top:12px"><label>Code de la famille</label><code id="pCode"></code></div>
@@ -586,6 +603,18 @@ $("nSave").onclick = async () => {
   if (p.enabled) registerPush();
 };
 
+
+/* ---------- Apparence ---------- */
+function applyTheme(t){
+  const r = document.documentElement;
+  if (t === "light" || t === "dark") r.dataset.theme = t; else delete r.dataset.theme;
+  try { localStorage.setItem("theme", t); } catch {}
+  document.querySelectorAll("#pTheme button").forEach(b => b.classList.toggle("p", b.dataset.t === t));
+  const dark = t === "dark" || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+  document.querySelector('meta[name="theme-color"]').content = dark ? "#13102A" : "#F4F1FB";
+}
+$("pTheme").onclick = e => { const b = e.target.closest("[data-t]"); if (b) applyTheme(b.dataset.t); };
+{ let t = "auto"; try { t = localStorage.getItem("theme") || "auto"; } catch {} applyTheme(t); }
 
 sb.auth.getSession().then(({data}) => { if (!data.session) show("auth"); });
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
