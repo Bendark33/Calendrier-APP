@@ -5,72 +5,155 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Calendy</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#3b82f6">
+<meta name="theme-color" content="#F8FAFC">
+<script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
-:root{--bg:#f6f7fb;--card:#fff;--tx:#1b1f2a;--mu:#667085;--bd:#e3e6ee;--ac:#3b82f6;color-scheme:light}
-@media (prefers-color-scheme:dark){:root{--bg:#0f1218;--card:#181c25;--tx:#e8eaf0;--mu:#98a2b3;--bd:#2a303c;--ac:#60a5fa;color-scheme:dark}}
+:root{--bg:#F8FAFC;--card:#FFFFFF;--tx:#1E293B;--mu:#64748B;--bd:#E2E8F0;--fill:#F1F5F9;--ac:#4F46E5;--pt:#FFFFFF;--pc:#EEF2FF;--today:#EEF2FF;--cell:#F8FAFC;--cello:#FDFEFE;--dg:#DC2626;--ok:#065F46;--sh:#0F172A1F;color-scheme:light}
+:root[data-theme="dark"]{--bg:#181824;--card:#222233;--tx:#F8FAFC;--mu:#94A3B8;--bd:#383854;--fill:#2E2E42;--ac:#818CF8;--pt:#181824;--pc:#2E2E42;--today:#3A3A56;--cell:#2A2A3D;--cello:#22222F;--dg:#F87171;--ok:#6EE7B7;--sh:#00000066;color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0;font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx);padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
-main{max-width:980px;margin:0 auto;padding:12px}
+body{margin:0;font:16px/1.4 Roboto,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--tx);padding:0 env(safe-area-inset-right,0) 0 env(safe-area-inset-left,0)}
+main{max-width:980px;margin:0 auto;padding:0 0 calc(100px + env(safe-area-inset-bottom,0px))}
 section[hidden],[hidden]{display:none!important}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px}
-.narrow{max-width:400px;margin:8vh auto 0}
-h1{font-size:20px;margin:0 0 12px}
-input,button,textarea{font:inherit;color:inherit}
-input:not([type=checkbox]):not([type=color]),textarea{width:100%;padding:10px;margin:4px 0 10px;border:1px solid var(--bd);border-radius:10px;background:var(--bg)}
-input[type=color]{width:48px;height:36px;border:1px solid var(--bd);border-radius:8px;background:none;padding:2px}
-button{padding:9px 14px;border:1px solid var(--bd);border-radius:10px;background:var(--card);cursor:pointer}
-button.p{background:var(--ac);border-color:var(--ac);color:#fff}
-button.d{color:#ef4444}
+h1{font-size:22px;font-weight:700;margin:0 0 12px}
+input,button,textarea,select{font:inherit;color:inherit}
+button{padding:9px 16px;border:0;border-radius:10px;background:var(--fill);color:var(--tx);cursor:pointer;font-weight:500}
+button.p{background:var(--ac);color:var(--pt);font-weight:600}
+button.d{color:var(--dg)}
+input:not([type=checkbox]):not([type=color]),textarea,select{width:100%;padding:12px 14px;margin:4px 0 10px;border:1px solid var(--bd);border-radius:12px;background:transparent;color:var(--tx)}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--ac)}
+input[type=color]{width:48px;height:36px;border:1px solid var(--bd);border-radius:10px;background:none;padding:3px}
 label{font-size:13px;color:var(--mu)}
-.msg{color:#ef4444;font-size:13px;min-height:18px;margin:6px 0}
+.msg{color:var(--dg);font-size:14px;min-height:18px;margin:6px 0}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .sp{justify-content:space-between}
-.chip{display:inline-flex;gap:6px;align-items:center;padding:5px 10px;border-radius:99px}
+.card{background:var(--card);border:0;border-radius:16px;padding:12px;margin:0 16px 16px;box-shadow:0 1px 3px var(--sh)}
+.narrow{max-width:400px;margin:8vh auto 0;padding:20px}
+.brand{display:flex;align-items:center;gap:10px;font-size:20px}
+.logo{width:32px;height:32px;border-radius:8px;background:var(--ac);color:var(--pt);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex:none}
+.topbar{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:4px;padding:calc(6px + env(safe-area-inset-top,0px)) 8px 6px;background:var(--bg)}
+.sp1{flex:1}
+.ib{width:40px;height:40px;padding:0;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center;color:var(--tx)}
+.ib.acc{color:var(--ac)}
+.online{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:12px;background:#10B98126;color:var(--ok);font-size:11px;font-weight:700}
+.online i{width:8px;height:8px;border-radius:50%;background:#10B981}
+.av{width:36px;height:36px;border-radius:50%;border:2px solid var(--card);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex:none}
+.av.sm{width:32px;height:32px;font-size:13px;border-width:1.5px}
+.avs{display:flex}.avs .av{margin-left:-6px}
+.head{padding:4px 16px 8px}
+.head h1{font-size:22px;margin:0}
+.head p{margin:0;color:var(--mu);font-size:14px}
+.navrow{display:flex;justify-content:space-between;align-items:center;margin:10px 0 2px}
+.navrow strong{color:var(--ac);font-size:16px;font-weight:600}
+.strip{display:flex;gap:4px;margin-top:6px}
+.sd{flex:1;min-width:0;padding:8px 0;border-radius:12px;background:var(--card);box-shadow:inset 0 0 0 1px var(--bd);display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--tx)}
+.sd .l{font-size:11px;font-weight:600;color:var(--mu)}
+.sd .n{font-size:16px;font-weight:500}
+.sd.today{background:var(--today)}.sd.today .n{font-weight:700}
+.sd.sel{background:var(--pc);box-shadow:inset 0 0 0 2px var(--ac)}
+.sd.sel .l,.sd.sel .n{color:var(--ac);font-weight:700}
+.chips{display:flex;gap:8px;overflow-x:auto;margin-top:10px;padding-bottom:2px}
+.chip{flex:none;display:inline-flex;gap:8px;align-items:center;padding:6px 12px;border-radius:8px;background:var(--fill);color:var(--tx);font-size:14px;font-weight:500}
 .chip i{width:10px;height:10px;border-radius:50%;display:inline-block}
-.chip.off{opacity:.4}
-#grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
-.dow{text-align:center;font-size:12px;color:var(--mu);margin-top:8px}
-.cell{min-height:78px;padding:4px;border:1px solid var(--bd);border-radius:10px;background:var(--card);cursor:pointer;overflow:hidden}
-.cell.out{opacity:.45}.cell.today b{color:var(--ac)}.cell.sel{outline:2px solid var(--ac)}
-.cell b{font-size:12px}
-.cell i{display:block;font-style:normal;font-size:11px;color:#fff;border-radius:4px;padding:1px 4px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cell small{color:var(--mu);font-size:11px}
-.ev{display:flex;gap:10px;padding:10px;border:1px solid var(--bd);border-radius:10px;margin-top:8px;cursor:pointer}
-.ev u{width:5px;border-radius:3px;flex:none}
-.ev small{color:var(--mu)}
-dialog{border:1px solid var(--bd);border-radius:14px;background:var(--card);color:var(--tx);width:min(460px,94vw);padding:16px}
-dialog::backdrop{background:#0008}
+.chip.off{opacity:.5}
+#viewCard.flat{background:transparent;box-shadow:none;padding:0}
+#viewCard.flat #grid{display:none}
+#grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.dow{text-align:center;font-size:12px;font-weight:600;color:var(--mu)}
+#cells.month{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
+#cells.week{display:flex;flex-direction:column;gap:12px}
+.cell{aspect-ratio:.85;padding:2px;border-radius:8px;background:var(--cell);cursor:pointer;display:flex;flex-direction:column;align-items:center;overflow:hidden}
+.cell.out{background:var(--cello)}.cell.out b{opacity:.4;color:var(--mu)}
+.cell.today{background:var(--today)}
+.cell.sel{background:var(--pc);box-shadow:inset 0 0 0 1.5px var(--ac)}
+.cell b{font-size:11px;font-weight:500}
+.cell.today b,.cell.sel b{font-weight:700}.cell.sel b{color:var(--ac)}
+.dots{display:flex;gap:2px;margin-top:3px}.dots i{width:5px;height:5px;border-radius:50%}
+.cell small{font-size:8px;font-weight:700;color:var(--ac)}
+.wday{border-radius:16px;padding:14px;color:#2A1A00;cursor:pointer;box-shadow:0 1px 2px var(--sh);border:.5px solid #00000014}
+.wday.sel{border:2px solid var(--ac)}
+.wdh{display:flex;justify-content:space-between;align-items:center}
+.wdt{font-weight:700;font-size:15px}
+.badge{display:inline-block;background:var(--ac);color:var(--pt);border-radius:6px;padding:2px 6px;font-size:11px;font-weight:700;margin-right:6px;vertical-align:1px}
+.addb{width:28px;height:28px;padding:0;border-radius:50%;background:transparent;color:#2A1A00;display:flex;align-items:center;justify-content:center}
+.empty{font-style:italic;font-size:13px;color:#2A1A0099;padding:6px 0 0}
+.wl{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.er{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;background:var(--card);box-shadow:0 1px 2px var(--sh);cursor:pointer;color:var(--tx)}
+.er .bar{width:4px;height:36px;border-radius:2px;flex:none}
+.eb{min-width:0;flex:1}
+.et{display:flex;align-items:center;gap:6px}
+.tb{background:var(--pc);color:var(--ac);font-size:11px;font-weight:700;padding:2px 5px;border-radius:4px;flex:none}
+.tt{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.el{display:flex;align-items:center;gap:2px;color:var(--mu);font-size:12px;margin-top:2px}
+.er svg,.el svg{flex:none}
+#dayCard .dl{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.daysub{font-size:12px;font-weight:600;color:var(--ac)}
+.tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(100%,560px);z-index:5;display:flex;align-items:center;justify-content:space-around;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--bd);box-shadow:0 -2px 8px var(--sh)}
+.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;background:none;color:var(--mu);padding:4px 0;font-size:12px;font-weight:500}
+.tabbar .ind{width:56px;height:34px;border-radius:17px;display:flex;align-items:center;justify-content:center}
+.tabbar button.p{background:none;color:var(--ac)}
+.tabbar button.p .ind{background:var(--pc)}
+.tabbar .plus{width:40px;height:40px;margin:-3px 0;border-radius:13px;background:var(--ac);color:var(--pt);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px #00000033}
+.dbg{position:fixed;inset:0;z-index:19;background:#0F172A80;opacity:0;pointer-events:none;transition:opacity .25s}
+.dbg.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;bottom:0;left:0;width:min(84vw,310px);z-index:20;background:var(--card);color:var(--tx);padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px));border-radius:0 16px 16px 0;box-shadow:8px 0 30px #00000040;display:flex;flex-direction:column;gap:10px;transform:translateX(-102%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s linear .28s;overflow:auto}
+.drawer.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s}
+.drawer button{width:100%;text-align:left;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;font-size:15px;background:transparent}
+.drawer #bCode{background:var(--fill);font-weight:700;letter-spacing:.06em}
+.dlogo{font-size:24px;font-weight:800;color:var(--ac)}
+.badge2{background:var(--pc);color:var(--ac);font-weight:700;font-size:12px;padding:4px 8px;border-radius:8px}
+.g{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;border:1px solid var(--bd);background:var(--card);font-weight:600}
+.or{display:flex;align-items:center;gap:10px;color:var(--mu);font-size:13px;margin:16px 0}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--bd)}
+.seg{display:inline-flex;background:var(--fill);border-radius:10px;padding:3px}
+.seg button{background:transparent;color:var(--tx);padding:7px 18px;border-radius:8px}
+.seg button.p{background:var(--card);color:var(--tx);box-shadow:0 1px 3px #0003}
+dialog{border:0;border-radius:24px;background:var(--card);color:var(--tx);width:min(460px,94vw);padding:20px}
+dialog::backdrop{background:#0F172A99}
+dialog[open]{animation:sheet .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes sheet{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
 fieldset{border:0;padding:0;margin:0}
+.dt{display:grid;grid-template-columns:3fr 2fr;gap:8px}
 .who label{display:inline-flex;gap:4px;align-items:center;margin-right:10px;color:var(--tx)}
-@media (max-width:600px){.cell{min-height:58px}.cell i{height:6px;font-size:0;padding:0}}
-select{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx)}
-.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
-.wday{border:1px solid var(--bd);border-radius:10px;padding:8px;min-height:140px;background:var(--card);cursor:pointer}
-.wday.today .wh{color:var(--ac)}.wday.sel{outline:2px solid var(--ac)}
-.wh{font-weight:600;font-size:13px;text-transform:capitalize;margin-bottom:6px}
-.wev{position:relative;padding:7px 8px 7px 16px;margin-top:6px;font-size:13px;background:var(--bg);border-radius:8px;cursor:pointer}
-.wev .bar{position:absolute;left:0;top:0;bottom:0;width:8px;border-radius:8px 0 0 8px}
-.wev small,.wday>small{color:var(--mu)}
-@media (max-width:760px){.week{grid-template-columns:1fr}.wday{min-height:0}}
+@media (max-width:600px){
+dialog{width:100%;max-width:none;margin:auto 0 0;border-radius:24px 24px 0 0;max-height:92vh;overflow:auto;padding:12px 20px calc(20px + env(safe-area-inset-bottom,0px))}
+dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;background:var(--bd);margin:0 auto 14px}}
 </style>
 </head>
 <body>
 <main>
 
 <section id="auth" class="card narrow" hidden>
-  <h1>Calendy</h1>
-  <label>Email</label><input id="email" type="email" autocomplete="email">
-  <label>Mot de passe (6 caractères minimum)</label><input id="pass" type="password" autocomplete="current-password">
-  <div class="msg" id="authMsg"></div>
-  <div class="row"><button class="p" id="bIn">Se connecter</button><button id="bUp">Créer un compte</button></div>
+  <div class="brand" style="margin-bottom:14px"><span class="logo">C</span><strong>Calendy</strong></div>
+  <button id="bGoogle" class="g"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16.9z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-2.9-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.100 0 24s.9 7.600 2.600 10.800l7.900-6.100z"/><path fill="#34A853" d="M24 48c6.500 0 11.900-2.100 15.900-5.800l-7.100-5.500c-2 1.400-4.600 2.200-8.800 2.200-6.300 0-11.600-4.100-13.500-9.800l-7.900 6.100C6.500 42.600 14.600 48 24 48z"/></svg>Continuer avec Google</button>
+  <div class="or"><span>ou avec ton e-mail</span></div>
+  <div id="loginBox">
+    <h2 style="font-size:16px;margin:0 0 8px">Connexion</h2>
+    <label>Email</label><input id="email" type="email" autocomplete="email">
+    <label>Mot de passe</label><input id="pass" type="password" autocomplete="current-password">
+    <div class="msg" id="loginMsg"></div>
+    <button class="p" id="bIn" style="width:100%">Se connecter</button>
+    <p style="margin:14px 0 0;text-align:center"><label>Pas encore de compte ?</label> <button id="toSignup">Créer un compte</button></p>
+  </div>
+  <div id="signupBox" hidden>
+    <h2 style="font-size:16px;margin:0 0 8px">Créer un compte</h2>
+    <label>Email</label><input id="suEmail" type="email" autocomplete="email">
+    <label>Mot de passe (6 caractères minimum)</label><input id="suPass" type="password" autocomplete="new-password">
+    <label>Confirmer le mot de passe</label><input id="suPass2" type="password" autocomplete="new-password">
+    <div class="msg" id="signupMsg"></div>
+    <button class="p" id="bUp" style="width:100%">Créer mon compte</button>
+    <p style="margin:14px 0 0;text-align:center"><label>Déjà un compte ?</label> <button id="toLogin">Se connecter</button></p>
+  </div>
 </section>
 
 <section id="onboard" hidden>
   <div class="card narrow">
     <h1>Ta famille</h1>
+    <p id="oInv" hidden style="background:var(--pc);color:var(--ac);padding:10px 12px;border-radius:12px;font-size:14px;font-weight:500;margin:0 0 12px">Tu as reçu une invitation : choisis ton prénom et ta couleur, puis touche « Rejoindre ».</p>
     <label>Ton prénom</label><input id="oName" maxlength="40">
     <div class="row"><label>Ta couleur</label><input id="oColor" type="color" value="#3b82f6"></div>
     <hr style="border:0;border-top:1px solid var(--bd);margin:14px 0">
@@ -85,26 +168,49 @@ select{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px
 </section>
 
 <section id="app" hidden>
-  <div class="row sp">
-    <div class="row"><strong id="famName"></strong><select id="famSel" hidden></select><button id="bNewFam">+ Famille</button><button id="bCode" title="Copier le code d’invitation"></button></div>
-    <span class="row"><button id="bProf">Profil</button><button id="bOut2">Déconnexion</button></span>
+  <header class="topbar">
+    <button id="bMenu" class="ib" aria-label="Ouvrir le menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <div class="brand"><span class="logo">C</span><strong>Calendy</strong></div>
+    <span class="sp1"></span>
+    <button id="bSync" class="online" aria-label="Actualiser"><i></i><span id="syncTxt">En ligne</span></button>
+    <button id="bTheme" class="ib" aria-label="Changer de thème"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg></button>
+    <button id="bAv" class="ib" aria-label="Mon profil"><span id="topAv" class="av sm"></span></button>
+  </header>
+  <div class="head">
+    <div class="row sp" style="flex-wrap:nowrap"><div><h1 id="hello"></h1><p id="helloSub"></p></div><div class="avs" id="helloAv"></div></div>
+    <div class="navrow"><strong id="title"></strong><span class="row" style="gap:0"><button class="ib" id="prev" aria-label="Période précédente"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><button class="ib acc" id="today" aria-label="Aujourd’hui"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/></svg></button><button class="ib" id="next" aria-label="Période suivante"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></span></div>
+    <div class="strip" id="helloStrip"></div>
+    <div class="chips" id="chips"></div>
   </div>
-  <div class="row" id="chips" style="margin:10px 0"></div>
-  <div class="card">
-    <div class="row sp">
-      <div class="row"><button id="prev">‹</button><button id="next">›</button><button id="today">Aujourd’hui</button><button id="vMonth">Mois</button><button id="vWeek">Semaine</button></div>
-      <strong id="title" style="text-transform:capitalize"></strong>
-      <button class="p" id="add">+ Événement</button>
-    </div>
-    <div id="grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px">
-      <div class="dow">lun</div><div class="dow">mar</div><div class="dow">mer</div><div class="dow">jeu</div><div class="dow">ven</div><div class="dow">sam</div><div class="dow">dim</div>
-    </div>
+  <div class="card" id="viewCard" style="margin-top:12px">
+    <div id="grid"><div class="dow">L</div><div class="dow">M</div><div class="dow">M</div><div class="dow">J</div><div class="dow">V</div><div class="dow">S</div><div class="dow">D</div></div>
     <div id="cells"></div>
   </div>
-  <div class="card" id="dayCard" style="margin-top:10px">
-    <strong id="dayTitle" style="text-transform:capitalize"></strong>
-    <div id="dayList"></div>
+  <div class="card" id="dayCard">
+    <div class="row sp"><div><strong id="dayTitle" style="font-size:17px"></strong><div class="daysub" id="daySub"></div></div><button class="p" id="addDay">+ Ajouter</button></div>
+    <div class="dl" id="dayList"></div>
   </div>
+  <nav class="tabbar" aria-label="Navigation">
+    <button id="vWeek"><span class="ind"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3M8 14h8"/></svg></span>Semaine</button>
+    <button id="vMonth"><span class="ind"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3M8.5 14h.01M12 14h.01M15.5 14h.01M8.5 17h.01M12 17h.01"/></svg></span>Mois</button>
+    <button id="add" aria-label="Ajouter un événement"><span class="ind"><span class="plus"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></span>Ajouter</button>
+    <button id="bProf"><span class="ind"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg></span>Profil</button>
+  </nav>
+  <div class="dbg" id="dbg"></div>
+  <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Menu">
+    <div class="row sp"><span class="dlogo">Calendy</span><span class="badge2">Famille</span><button id="dClose" hidden aria-label="Fermer le menu" style="padding:8px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <label>Ma famille</label>
+    <strong id="famName" style="font-size:18px"></strong><select id="famSel" hidden></select>
+    <button id="bNewFam"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Ajouter une famille</button>
+    <label style="margin-top:6px">Code de la famille (touche pour copier)</label>
+    <button id="bCode" title="Copier le code d’invitation"></button>
+    <button id="bShare"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M8 7.5l4-4 4 4"/><path d="M7 11H5.5A1.5 1.5 0 0 0 4 12.5v6A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5v-6a1.5 1.5 0 0 0-1.5-1.5H17"/></svg>Partager la famille</button>
+    <div style="margin-top:auto;display:flex;flex-direction:column;gap:6px">
+    <button id="bLeave" class="d"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3M16 8l4 4-4 4M20 12H9"/></svg>Quitter cette famille</button>
+    <button id="bDelFam" class="d"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>Supprimer cette famille</button>
+    <button id="bOut2" class="d"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3M16 8l4 4-4 4M20 12H9"/></svg>Se déconnecter</button>
+    </div>
+  </aside>
 </section>
 
 </main>
@@ -114,11 +220,14 @@ select{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px
     <h1 id="dTitle">Événement</h1>
     <label>Titre</label><input id="fTitle" maxlength="120">
     <label><input type="checkbox" id="fAll"> Toute la journée</label><br>
-    <label><input type="checkbox" id="fImp"> ★ Important</label>
-    <div class="row">
-      <div style="flex:1"><label>Début</label><input type="date" id="fD1"><input type="time" id="fT1"></div>
-      <div style="flex:1"><label>Fin</label><input type="date" id="fD2"><input type="time" id="fT2"></div>
-    </div>
+    <label><input type="checkbox" id="fImp"> ★ Important</label><br>
+    <label><input type="checkbox" id="fConf"> 🔒 Confidentiel (visible seulement par moi)</label>
+    <label>Répétition</label>
+    <select id="fRep" style="width:100%;margin:4px 0 10px"><option value="none">Aucune</option><option value="weekly">Toutes les semaines</option><option value="monthly">Tous les mois</option></select>
+    <div id="fUntilRow" hidden><label>Jusqu’au (facultatif)</label><input type="date" id="fUntil"></div>
+    <p id="fSerie" hidden style="color:var(--mu);font-size:13px;margin:0 0 8px">Cet événement se répète : une modification s’applique à toute la série.</p>
+    <label>Début</label><div class="dt"><input type="date" id="fD1"><input type="time" id="fT1"></div>
+    <label>Fin</label><div class="dt"><input type="date" id="fD2"><input type="time" id="fT2"></div>
     <label>Lieu</label><input id="fLoc">
     <label>Description</label><textarea id="fDesc" rows="2"></textarea>
     <label>Qui est concerné</label>
@@ -146,18 +255,39 @@ select{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px
   <div class="row sp"><button id="nClose">Fermer</button><button class="p" id="nSave">Enregistrer</button></div>
 </dialog>
 
+<dialog id="idlg">
+  <h1>Partager la famille</h1>
+  <label>Message</label>
+  <textarea id="iMsg" rows="9"></textarea>
+  <div class="row" style="margin-top:6px"><button id="iWa">WhatsApp</button><button id="iSms">SMS</button><button id="iMail">E-mail</button><button id="iCopy">Copier</button></div>
+  <div class="row sp" style="margin-top:14px"><button id="iClose">Fermer</button></div>
+</dialog>
+
+<dialog id="rdlg">
+  <h1>Signaler un problème</h1>
+  <label>Type</label>
+  <select id="rCat" style="width:100%;margin:4px 0 10px"><option value="bug">Un problème (bug)</option><option value="suggestion">Une idée ou suggestion</option><option value="autre">Autre</option></select>
+  <label>Décris ce qui se passe</label>
+  <textarea id="rText" rows="5" maxlength="2000" placeholder="Que faisais-tu ? Que s’est-il passé ?"></textarea>
+  <label><input type="checkbox" id="rTech" checked> Joindre des informations techniques (type d’appareil, version de l’application)</label>
+  <div class="msg" id="rMsg"></div>
+  <div class="row sp"><button id="rClose">Fermer</button><button class="p" id="rSend">Envoyer</button></div>
+</dialog>
+
 <dialog id="pdlg">
   <h1>Mon profil</h1>
   <p id="pPlan" style="color:var(--mu);margin:0 0 10px"></p>
+  <label>Apparence</label>
+  <div class="seg" id="pTheme" style="display:flex;margin:4px 0 12px"><button data-t="light" style="flex:1">Clair</button><button data-t="dark" style="flex:1">Sombre</button></div>
   <label>Prénom</label><input id="pName" maxlength="40">
   <div class="row"><label>Ma couleur</label><input id="pColor" type="color"></div>
+  <div class="row" style="margin-top:12px"><label>Code de la famille</label><code id="pCode"></code></div>
   <div id="pAdmin" hidden style="margin-top:12px">
     <label>Nom de la famille</label><input id="pFam" maxlength="80">
-    <label>Code d’invitation de la famille</label>
-    <div class="row"><code id="pCode"></code><button id="pRenew">Renouveler</button></div>
+    <button id="pRenew">Renouveler le code d’invitation</button><br>
     <small style="color:var(--mu)">Après le renouvellement, l’ancien code ne fonctionne plus.</small>
   </div>
-  <button id="bNotif" style="margin-top:12px">Notifications…</button>
+  <div class="row" style="margin-top:12px"><button id="bNotif">Notifications…</button><button id="bReport">Signaler un problème</button></div>
   <div class="msg" id="pMsg"></div>
   <div class="row sp"><button id="pClose">Fermer</button><button class="p" id="pSave">Enregistrer</button></div>
   <hr style="border:0;border-top:1px solid var(--bd);margin:14px 0">
@@ -174,7 +304,7 @@ const pad = n => String(n).padStart(2, "0");
 const ymd = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt = (d, o) => new Intl.DateTimeFormat("fr-FR", o).format(d);
-const S = {user:null, fam:null, me:null, members:[], events:[], month:new Date(), sel:new Date(), off:new Set(), edit:null, ch:null, view:(innerWidth < 600 ? "week" : "month"), prefs:null, token:null};
+const S = {user:null, fam:null, me:null, members:[], events:[], month:new Date(), sel:new Date(), off:new Set(), edit:null, ch:null, base:{}, view:(innerWidth < 600 ? "week" : "month"), prefs:null, token:null};
 const isNative = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
 // Accès aux plugins natifs : sans bundler, Capacitor expose Capacitor.Plugins.<Nom>
 function plug(name){
@@ -183,6 +313,8 @@ function plug(name){
   if (C && typeof C.registerPlugin === "function") return C.registerPlugin(name);
   return null;
 }
+// Lien d’invitation : /?code=XXXX -> on garde le code jusqu’à la connexion
+try { const c = new URLSearchParams(location.search).get("code"); if (c && /^[A-Za-z0-9]{4,16}$/.test(c)) { localStorage.setItem("pendingCode", c.toLowerCase()); history.replaceState(null, "", location.pathname); } } catch {}
 const NP_DEF = {enabled:true, notify_new:true, notify_changes:true, only_important:false, reminder_offsets:[1440]};
 
 function show(id){ ["auth","onboard","app"].forEach(x => $(x).hidden = x !== id); }
@@ -195,15 +327,105 @@ const grad = (cs, dir) => { const c = cs.length > 1 ? cs : [cs[0], cs[0]], n = c
 const tint = cs => "linear-gradient(90deg," + (cs.length > 1 ? cs : [cs[0], cs[0]]).map(x => x + "40").join(",") + ")";
 
 /* ---------- Connexion ---------- */
-async function doAuth(signup){
-  const email = $("email").value.trim(), password = $("pass").value;
-  $("authMsg").textContent = "";
-  const r = signup ? await sb.auth.signUp({email, password}) : await sb.auth.signInWithPassword({email, password});
-  if (r.error) return $("authMsg").textContent = r.error.message;
-  if (signup && !r.data.session) $("authMsg").textContent = "Compte créé. Confirme ton email, puis connecte-toi.";
+function authMode(m){ $("loginBox").hidden = m !== "login"; $("signupBox").hidden = m !== "signup"; $("loginMsg").textContent = $("signupMsg").textContent = ""; }
+$("bGoogle").onclick = async () => {
+  $("loginMsg").textContent = $("signupMsg").textContent = "";
+  const showErr = m => { $((!$("signupBox").hidden) ? "signupMsg" : "loginMsg").textContent = /provider is not enabled|Unsupported provider/i.test(m) ? "La connexion Google n’est pas encore activée." : m; };
+  try {
+    if (isNative) {
+      const {data, error} = await sb.auth.signInWithOAuth({provider:"google", options:{redirectTo:"com.bendark.calendy://auth", skipBrowserRedirect:true}});
+      if (error) return showErr(error.message);
+      const B = plug("Browser");
+      if (!B) return showErr("Plugin navigateur manquant dans l’application.");
+      await B.open({url: data.url});
+    } else {
+      const {error} = await sb.auth.signInWithOAuth({provider:"google", options:{redirectTo: location.origin + location.pathname}});
+      if (error) showErr(error.message);
+    }
+  } catch (e) { showErr(String((e && e.message) || e)); }
+};
+// Retour de Google dans l’application Android (lien profond com.bendark.calendy://auth)
+if (isNative) {
+  const A = plug("App");
+  if (A && A.addListener) A.addListener("appUrlOpen", async ({url}) => {
+    if (!url || !url.startsWith("com.bendark.calendy://")) return;
+    try { const B = plug("Browser"); if (B && B.close) B.close(); } catch {}
+    try {
+      const u = new URL(url), code = u.searchParams.get("code"), h = new URLSearchParams(u.hash.slice(1));
+      if (code) { const r = await sb.auth.exchangeCodeForSession(code); if (r.error) alert(r.error.message); }
+      else if (h.get("access_token")) await sb.auth.setSession({access_token:h.get("access_token"), refresh_token:h.get("refresh_token")});
+    } catch (e) { alert("Connexion Google impossible : " + ((e && e.message) || e)); }
+  });
 }
-$("bIn").onclick = () => doAuth(false);
-$("bUp").onclick = () => doAuth(true);
+$("toSignup").onclick = () => authMode("signup");
+$("toLogin").onclick = () => authMode("login");
+$("bIn").onclick = async () => {
+  $("loginMsg").textContent = "";
+  const {error} = await sb.auth.signInWithPassword({email:$("email").value.trim(), password:$("pass").value});
+  if (error) $("loginMsg").textContent = error.message;
+};
+$("bUp").onclick = async () => {
+  const email = $("suEmail").value.trim(), password = $("suPass").value;
+  $("signupMsg").textContent = "";
+  if (!email) return $("signupMsg").textContent = "L’email est requis";
+  if (password.length < 6) return $("signupMsg").textContent = "Le mot de passe doit faire au moins 6 caractères";
+  if (password !== $("suPass2").value) return $("signupMsg").textContent = "Les deux mots de passe ne sont pas identiques";
+  const r = await sb.auth.signUp({email, password});
+  if (r.error) return $("signupMsg").textContent = r.error.message;
+  if (!r.data.session) { authMode("login"); $("email").value = email; $("loginMsg").textContent = "Compte créé. Confirme ton email, puis connecte-toi."; }
+};
+function openDrawer(){
+  $("bCode").textContent = "Code : " + S.fam.invite_code;
+  $("drawer").classList.add("open"); $("dbg").classList.add("open"); $("drawer").setAttribute("aria-hidden", "false");
+}
+function closeDrawer(){
+  $("drawer").classList.remove("open"); $("dbg").classList.remove("open"); $("drawer").setAttribute("aria-hidden", "true");
+}
+$("bMenu").onclick = openDrawer; $("dbg").onclick = closeDrawer; $("dClose").onclick = closeDrawer;
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
+$("drawer").addEventListener("click", e => { if (e.target.closest("#bNewFam, #bOut2")) closeDrawer(); });
+/* ---------- Partager la famille ---------- */
+const SITE_URL = "https://calendrier-app.benjamin33370.workers.dev";
+function inviteLink(){ return SITE_URL + "/?code=" + S.fam.invite_code; }
+function inviteText(){
+  return `Salut !\n\nJe t’invite à rejoindre notre famille « ${S.fam.name} » sur Calendy.\n\nOuvre ce lien, crée ton compte (ou connecte-toi) et choisis ton prénom : tu rejoindras la famille automatiquement.\n${inviteLink()}\n\nSi le lien ne fonctionne pas, ouvre ${SITE_URL} et saisis le code : ${S.fam.invite_code}\n\nÀ très vite !\n${S.me.display_name}`;
+}
+function showShareFallback(){ $("iCopy").textContent = "Copier"; $("iMsg").value = inviteText(); $("idlg").showModal(); }
+async function shareFamily(){
+  const text = inviteText(), title = "Rejoins " + S.fam.name + " sur Calendy";
+  try {
+    const Sh = isNative ? plug("Share") : null;
+    if (Sh) { await Sh.share({title, text, dialogTitle:"Partager la famille"}); return; }
+    if (navigator.share) { await navigator.share({title, text}); return; }
+  } catch (e) {
+    if (e && (e.name === "AbortError" || /cancel/i.test(e.message || ""))) return;   // l’utilisateur a fermé la feuille
+  }
+  showShareFallback();
+}
+$("bShare").onclick = () => { closeDrawer(); shareFamily(); };
+$("iClose").onclick = () => $("idlg").close();
+$("iCopy").onclick = () => navigator.clipboard?.writeText($("iMsg").value).then(() => $("iCopy").textContent = "Copié");
+$("iWa").onclick = () => window.open("https://wa.me/?text=" + encodeURIComponent($("iMsg").value), "_blank");
+$("iSms").onclick = () => { location.href = "sms:?&body=" + encodeURIComponent($("iMsg").value); };
+$("iMail").onclick = () => { location.href = "mailto:?subject=" + encodeURIComponent("Invitation à rejoindre « " + S.fam.name + " » sur Calendy") + "&body=" + encodeURIComponent($("iMsg").value); };
+$("bLeave").onclick = async () => {
+  closeDrawer();
+  if (!confirm(`Quitter la famille « ${S.fam.name} » ?\n\nTu ne verras plus son calendrier. Les événements que tu as créés restent visibles pour les autres membres.`)) return;
+  const {error} = await sb.from("family_members").delete().eq("family_id", S.fam.id).eq("user_id", S.user.id);
+  if (error) return alert(error.message);
+  try { localStorage.removeItem("famId"); } catch {}
+  S.off = new Set(); boot();
+};
+$("bDelFam").onclick = async () => {
+  closeDrawer();
+  const n = (prompt(`Supprimer définitivement la famille « ${S.fam.name} » ?\n\nTous ses événements seront effacés pour TOUS les membres. Cette action est irréversible.\n\nPour confirmer, tape le nom de la famille :`) || "").trim();
+  if (n.toLowerCase() !== S.fam.name.toLowerCase()) { if (n) alert("Le nom saisi ne correspond pas. Rien n’a été supprimé."); return; }
+  const {data, error} = await sb.from("families").delete().eq("id", S.fam.id).select("id");
+  if (error) return alert(error.message);
+  if (!data || !data.length) return alert("Suppression impossible : seul le propriétaire peut supprimer la famille.");
+  try { localStorage.removeItem("famId"); } catch {}
+  S.off = new Set(); boot();
+};
 async function logout(){
   const wait = (p, ms) => Promise.race([p, new Promise(r => setTimeout(r, ms))]);
   try { if (S.token) await wait(sb.from("device_tokens").delete().eq("token", S.token), 3000); } catch (e) { console.warn("Déconnexion : appareil", e); }
@@ -236,7 +458,9 @@ async function boot(fid){
   S.prefs = {...NP_DEF, ...(n.data || {})};
   S.pro = !!S.plan && S.plan.plan === "pro" && (!S.plan.pro_until || new Date(S.plan.pro_until) > new Date());
   S.all = m.data;
-  if (!S.all.length) { $("oBack").hidden = true; return show("onboard"); }
+  let pend = null; try { pend = localStorage.getItem("pendingCode"); } catch {}
+  if (!S.all.length) { $("oBack").hidden = true; inviteMode(!!pend); if (pend) $("oCode").value = pend;
+    const md = S.user.user_metadata || {}; if (!$("oName").value) $("oName").value = md.given_name || md.full_name || md.name || ""; return show("onboard"); }
   let want = fid; try { want = want || localStorage.getItem("famId"); } catch {}
   S.me = S.all.find(x => x.family_id === want) || S.all[0];
   S.fam = {id: S.me.family_id, ...S.me.families};
@@ -248,20 +472,29 @@ async function boot(fid){
   S.ch = sb.channel("ev-" + S.fam.id)
     .on("postgres_changes", {event:"*", schema:"public", table:"events", filter:"family_id=eq." + S.fam.id}, loadEvents)
     .subscribe();
+  if (pend) joinFlow(pend);
+}
+function inviteMode(on){ $("oInv").hidden = !on; $("bJoin").classList.toggle("p", on); $("bCreate").classList.toggle("p", !on); }
+function joinFlow(code){
+  $("oMsg").textContent = ""; $("oName").value = S.me.display_name; $("oColor").value = S.me.color;
+  $("oCode").value = code; inviteMode(true); $("oBack").hidden = false; show("onboard");
 }
 function renderFam(){
+  $("hello").textContent = "Salut " + S.me.display_name;
+  $("helloSub").textContent = "La semaine de " + S.fam.name;
+  $("bLeave").hidden = S.me.role === "owner"; $("bDelFam").hidden = S.me.role !== "owner";
   $("famName").textContent = S.fam.name; $("famName").hidden = S.all.length > 1;
   $("famSel").innerHTML = S.all.map(x => `<option value="${x.family_id}"${x.family_id === S.fam.id ? " selected" : ""}>${esc(x.families.name)}</option>`).join("");
   $("famSel").hidden = S.all.length < 2;
   $("bCode").textContent = "Code : " + S.fam.invite_code;
 }
-$("famSel").onchange = () => { S.off = new Set(); boot($("famSel").value); };
+$("famSel").onchange = () => { S.off = new Set(); closeDrawer(); boot($("famSel").value); };
 $("bNewFam").onclick = () => {
   if (!S.pro) return alert("Avoir plusieurs familles est réservé à l’offre Pro.");
   $("oMsg").textContent = ""; $("oName").value = S.me.display_name; $("oColor").value = S.me.color;
-  $("oBack").hidden = false; show("onboard");
+  $("oBack").hidden = false; inviteMode(false); show("onboard");
 };
-$("oBack").onclick = () => boot(S.fam.id);
+$("oBack").onclick = () => { try { localStorage.removeItem("pendingCode"); } catch {} boot(S.fam.id); };
 $("bCode").onclick = () => navigator.clipboard?.writeText(S.fam.invite_code).then(() => $("bCode").textContent = "Code copié");
 
 async function onboard(fn, args){
@@ -269,6 +502,7 @@ async function onboard(fn, args){
   if (!$("oName").value.trim()) return $("oMsg").textContent = "Ton prénom est requis";
   const {data, error} = await sb.rpc(fn, args);
   if (error) return $("oMsg").textContent = error.message;
+  try { localStorage.removeItem("pendingCode"); } catch {}
   S.off = new Set(); boot(data);
 }
 $("bCreate").onclick = () => onboard("create_family", {p_name:$("oFam").value.trim() || "Ma famille", p_display_name:$("oName").value.trim(), p_color:$("oColor").value});
@@ -292,58 +526,112 @@ async function loadEvents(){
   if (S.view === "week") { a = weekStart(S.sel); b = new Date(a.getFullYear(), a.getMonth(), a.getDate() + 7); }
   else { const y = S.month.getFullYear(), m = S.month.getMonth(); a = new Date(y, m, -7); b = new Date(y, m + 1, 8); }
   const {data, error} = await sb.from("events").select("*,event_attendees(user_id)")
-    .eq("family_id", S.fam.id).lt("starts_at", b.toISOString()).gte("ends_at", a.toISOString()).order("starts_at");
+    .eq("family_id", S.fam.id)
+    .or(`and(starts_at.lt.${b.toISOString()},ends_at.gte.${a.toISOString()}),and(recurrence.neq.none,starts_at.lt.${b.toISOString()})`)
+    .order("starts_at");
   if (error) return alert(error.message);
-  S.events = data; render();
+  S.base = Object.fromEntries(data.map(e => [e.id, e]));
+  S.events = expand(data, a, b); render();
 }
+// Répétitions : on calcule les occurrences visibles (heure locale de l’appareil)
+function addPeriod(d, rec, n){
+  if (rec === "weekly") return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7 * n, d.getHours(), d.getMinutes(), d.getSeconds());
+  const m = d.getMonth() + n, dim = new Date(d.getFullYear(), m + 1, 0).getDate();
+  return new Date(d.getFullYear(), m, Math.min(d.getDate(), dim), d.getHours(), d.getMinutes(), d.getSeconds());
+}
+function expand(list, a, b){
+  const out = [];
+  for (const e of list){
+    if (!e.recurrence || e.recurrence === "none") { out.push(e); continue; }
+    const st = new Date(e.starts_at), dur = new Date(e.ends_at) - st;
+    const step = e.recurrence === "weekly" ? 7 * 864e5 : 31 * 864e5;
+    for (let n = Math.max(0, Math.floor((a - st) / step) - 1), i = 0; i < 70; n++, i++){
+      const os = addPeriod(st, e.recurrence, n);
+      if (os >= b) break;
+      if (e.repeat_until && ymd(os) > e.repeat_until) break;
+      const oe = new Date(os.getTime() + dur);
+      if (oe >= a) out.push({...e, starts_at:os.toISOString(), ends_at:oe.toISOString()});
+    }
+  }
+  return out;
+}
+const PASTELS = ["#CDF3E4", "#D6EEFF", "#FFE1D6", "#EAE0F8", "#E7F7C9", "#FFE6F0", "#DCEAF9"];
+const IC = {
+  star: '<svg width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9 6.8 19.7l1-5.9L3.5 9.7l5.9-.8z"/></svg>', lock: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ac)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>', repeat: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3l3 3-3 3M4 11V9.5A3.5 3.5 0 0 1 7.5 6H20M7 21l-3-3 3-3M20 13v1.5a3.5 3.5 0 0 1-3.5 3.5H4"/></svg>', pin: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.7-6.5-11A6.5 6.5 0 0 1 18.5 10c0 5.300-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>',
+  sun: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>', moon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg>', add: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'
+};
 const visible = e => [e.created_by, ...e.event_attendees.map(a => a.user_id)].some(i => !S.off.has(i));
 const onDay = k => S.events.filter(e => visible(e) && ymd(new Date(e.starts_at)) <= k && k <= ymd(new Date(e.ends_at)));
+const lumText = c => { const n = parseInt(c.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 128 ? "#2A1A00" : "#FFFFFF"; };
+const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
 
+// Ligne d'événement (semaine et détail du jour) : barre de couleurs, heure, icônes, titre, lieu
+function evRow(e){
+  const t = e.all_day ? "Journée" : fmt(new Date(e.starts_at), {hour:"2-digit", minute:"2-digit"});
+  const icons = (e.important ? IC.star : "") + (e.confidential ? IC.lock : "") + (e.recurrence && e.recurrence !== "none" ? IC.repeat : "");
+  return `<div class="er" data-e="${e.id}"><span class="bar" style="background:${grad(cols(e), "to bottom")}"></span><div class="eb"><div class="et"><span class="tb">${t}</span>${icons}<span class="tt">${esc(e.title)}</span></div>${e.location ? `<div class="el">${IC.pin}${esc(e.location)}</div>` : ""}</div></div>`;
+}
+function renderHead(){
+  $("helloAv").innerHTML = S.members.map(m => `<span class="av" title="${esc(m.display_name)}" style="background:${m.color};color:${lumText(m.color)}">${esc(m.display_name.slice(0, 1).toUpperCase())}</span>`).join("");
+  if (S.me) { $("topAv").style.background = S.me.color; $("topAv").style.color = lumText(S.me.color); $("topAv").textContent = S.me.display_name.slice(0, 1).toUpperCase(); }
+  const st = weekStart(S.sel), todayK = ymd(new Date()), selK = ymd(S.sel);
+  $("helloStrip").innerHTML = [0, 1, 2, 3, 4, 5, 6].map(i => {
+    const d = new Date(st.getFullYear(), st.getMonth(), st.getDate() + i), k = ymd(d);
+    return `<button class="sd${k === todayK ? " today" : ""}${k === selK ? " sel" : ""}" data-d="${k}" aria-label="${fmt(d, {weekday:"long", day:"numeric", month:"long"})}"><span class="l">${fmt(d, {weekday:"narrow"}).toUpperCase()}</span><span class="n">${d.getDate()}</span></button>`;
+  }).join("");
+}
+$("helloStrip").onclick = e => {
+  const b = e.target.closest("[data-d]"); if (!b) return;
+  S.sel = new Date(b.dataset.d + "T00:00");
+  if (S.view === "month" && S.sel.getMonth() !== S.month.getMonth()) { S.month = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); loadEvents(); } else render();
+};
 function render(){
+  renderHead();
   const todayK = ymd(new Date()), selK = ymd(S.sel), wk = S.view === "week";
-  $("grid").hidden = wk; $("dayCard").hidden = wk;
-  const people = e => esc([...new Set([e.created_by, ...e.event_attendees.map(a => a.user_id)])].map(who).join(", "));
+  $("viewCard").classList.toggle("flat", wk); $("dayCard").hidden = wk;
   if (wk){
     const st = weekStart(S.sel), en = new Date(st.getFullYear(), st.getMonth(), st.getDate() + 6);
     $("title").textContent = fmt(st, {day:"numeric", month:"short"}) + " – " + fmt(en, {day:"numeric", month:"short", year:"numeric"});
     let h = "";
     for (let i = 0; i < 7; i++){
       const d = new Date(st.getFullYear(), st.getMonth(), st.getDate() + i), k = ymd(d), ev = onDay(k);
-      h += `<div class="wday${k === todayK ? " today" : ""}${k === selK ? " sel" : ""}" data-d="${k}"><div class="wh">${fmt(d, {weekday:"long", day:"numeric", month:"short"})}</div>`
-        + (ev.map(e => `<div class="wev" data-e="${e.id}" style="background:${tint(cols(e))}"><span class="bar" style="background:${grad(cols(e), "to bottom")}"></span><b>${e.all_day ? "Journée" : fmt(new Date(e.starts_at), {hour:"2-digit", minute:"2-digit"})}</b> ${e.important ? "★ " : ""}${esc(e.title)}${e.location ? "<br><small>" + esc(e.location) + "</small>" : ""}</div>`).join("") || "<small>Rien de prévu</small>")
-        + "</div>";
+      h += `<div class="wday${k === selK ? " sel" : ""}" data-d="${k}" style="background:${k === todayK ? "#EEF2FF" : PASTELS[i % PASTELS.length]}"><div class="wdh"><div>${k === todayK ? `<span class="badge">Aujourd’hui</span>` : ""}<span class="wdt">${cap(fmt(d, {weekday:"long", day:"numeric", month:"long"}))}</span></div><button class="addb" data-add="${k}" aria-label="Ajouter un événement ce jour-là">${IC.add}</button></div>`
+        + (ev.length ? `<div class="wl">${ev.map(evRow).join("")}</div>` : `<div class="empty">Rien de prévu</div>`) + "</div>";
     }
-    $("cells").style.cssText = ""; $("cells").className = "week"; $("cells").innerHTML = h;
+    $("cells").className = "week"; $("cells").innerHTML = h;
     return;
   }
   const y = S.month.getFullYear(), m = S.month.getMonth();
-  $("title").textContent = fmt(S.month, {month:"long", year:"numeric"});
+  $("title").textContent = cap(fmt(S.month, {month:"long", year:"numeric"}));
   const start = new Date(y, m, 1 - ((new Date(y, m, 1).getDay() + 6) % 7));
   let h = "";
   for (let i = 0; i < 42; i++){
     const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i), k = ymd(d), ev = onDay(k);
     h += `<div class="cell${d.getMonth() !== m ? " out" : ""}${k === todayK ? " today" : ""}${k === selK ? " sel" : ""}" data-d="${k}"><b>${d.getDate()}</b>`
-      + ev.slice(0, 3).map(e => `<i style="background:${grad(cols(e), "90deg")}">${e.important ? "★ " : ""}${esc(e.title)}</i>`).join("")
+      + (ev.length ? `<div class="dots">${ev.slice(0, 3).map(e => `<i style="background:${col(e.created_by)}"></i>`).join("")}</div>` : "")
       + (ev.length > 3 ? `<small>+${ev.length - 3}</small>` : "") + "</div>";
   }
-  $("cells").className = ""; $("cells").style.cssText = "display:grid;grid-template-columns:repeat(7,1fr);gap:4px";
-  $("cells").innerHTML = h;
-  $("dayTitle").textContent = fmt(S.sel, {weekday:"long", day:"numeric", month:"long"});
+  $("cells").className = "month"; $("cells").innerHTML = h;
+  $("dayTitle").textContent = cap(fmt(S.sel, {weekday:"long", day:"numeric", month:"long"}));
+  $("daySub").textContent = selK === todayK ? "Aujourd’hui" : "";
   const list = onDay(selK);
-  $("dayList").innerHTML = list.length ? list.map(e => {
-    const t = e.all_day ? "Toute la journée" : fmt(new Date(e.starts_at), {hour:"2-digit", minute:"2-digit"}) + " – " + fmt(new Date(e.ends_at), {hour:"2-digit", minute:"2-digit"});
-    return `<div class="ev" data-e="${e.id}"><u style="background:${grad(cols(e), "to bottom")}"></u><div><strong>${e.important ? "★ " : ""}${esc(e.title)}</strong><br><small>${t}${e.location ? " · " + esc(e.location) : ""}<br>${people(e)}</small></div></div>`;
-  }).join("") : `<p style="color:var(--mu)">Rien de prévu.</p>`;
+  $("dayList").innerHTML = list.length ? list.map(evRow).join("") : `<p style="color:var(--mu);font-size:14px;margin:8px 0">Rien de prévu pour cette journée.</p>`;
 }
 
 $("cells").onclick = e => {
+  const ad = e.target.closest("[data-add]");
+  if (ad) { S.sel = new Date(ad.dataset.add + "T00:00"); return openDlg(null); }
   const ev = e.target.closest("[data-e]");
-  if (ev) return openDlg(S.events.find(v => v.id === ev.dataset.e));
+  if (ev) return openDlg(S.base[ev.dataset.e]);
   const c = e.target.closest("[data-d]"); if (!c) return;
   S.sel = new Date(c.dataset.d + "T00:00");
   if (S.view === "month" && S.sel.getMonth() !== S.month.getMonth()) { S.month = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); loadEvents(); } else render();
 };
-$("dayList").onclick = e => { const x = e.target.closest("[data-e]"); if (x) openDlg(S.events.find(v => v.id === x.dataset.e)); };
+$("dayList").onclick = e => { const x = e.target.closest("[data-e]"); if (x) openDlg(S.base[x.dataset.e]); };
+$("addDay").onclick = () => openDlg(null);
+$("bAv").onclick = () => $("bProf").click();
+$("bTheme").onclick = () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+$("bSync").onclick = async () => { $("syncTxt").textContent = "Sync…"; await loadMembers(); await loadEvents(); $("syncTxt").textContent = "En ligne"; };
 const weekStart = d => new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
 const go = n => {
   if (S.view === "week") { S.sel = new Date(S.sel.getFullYear(), S.sel.getMonth(), S.sel.getDate() + 7 * n); S.month = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); }
@@ -365,8 +653,8 @@ $("bProf").onclick = () => {
   $("pAdmin").hidden = !["owner", "admin"].includes(S.me.role); $("pFam").value = S.fam.name;
   $("pCode").textContent = S.fam.invite_code;
   $("pPlan").textContent = S.pro
-    ? "Offre Pro" + (S.plan.pro_until ? " jusqu’au " + fmt(new Date(S.plan.pro_until), {day:"numeric", month:"long", year:"numeric"}) : "") + " : plusieurs familles."
-    : "Offre gratuite : 1 famille. L’offre Pro permet d’en avoir plusieurs.";
+    ? "Offre Pro" + (S.plan.pro_until ? " jusqu’au " + fmt(new Date(S.plan.pro_until), {day:"numeric", month:"long", year:"numeric"}) : "")
+    : "Offre classique";
   $("pdlg").showModal();
 };
 $("pClose").onclick = () => $("pdlg").close();
@@ -391,7 +679,7 @@ $("pSave").onclick = async () => {
     S.fam.name = fam; S.me.families.name = fam; renderFam();
   }
   S.me.display_name = n; S.me.color = c;
-  $("pdlg").close(); await loadMembers(); render();
+  $("pdlg").close(); await loadMembers(); renderFam(); render();
 };
 $("pRenew").onclick = async () => {
   if (!confirm("Renouveler le code ? L’ancien code ne fonctionnera plus.")) return;
@@ -409,15 +697,23 @@ function openDlg(ev){
   const hm = d => pad(d.getHours()) + ":" + pad(d.getMinutes());
   $("dTitle").textContent = ev ? "Modifier l’événement" : "Nouvel événement";
   $("fTitle").value = ev?.title || ""; $("fLoc").value = ev?.location || ""; $("fDesc").value = ev?.description || "";
-  $("fAll").checked = !!ev?.all_day; $("fImp").checked = !!ev?.important;
+  $("fAll").checked = !!ev?.all_day; $("fImp").checked = !!ev?.important; $("fConf").checked = !!ev?.confidential;
+  $("fRep").value = ev?.recurrence || "none"; $("fUntil").value = ev?.repeat_until || ""; $("fSerie").hidden = !(ev && ev.recurrence !== "none");
   $("fD1").value = ymd(a); $("fD2").value = ymd(b);
   $("fT1").value = ev ? hm(a) : "09:00"; $("fT2").value = ev ? hm(b) : "10:00";
   const ids = ev ? ev.event_attendees.map(x => x.user_id) : [S.user.id];
   $("fWho").innerHTML = S.members.map(m => `<label><input type="checkbox" value="${m.user_id}"${ids.includes(m.user_id) ? " checked" : ""}> ${esc(m.display_name)}</label>`).join("");
-  $("fMsg").textContent = ""; tAll();
+  $("fMsg").textContent = ""; tAll(); syncDlg();
   $("fSet").disabled = !can; $("fSave").hidden = !can; $("fDel").hidden = !(ev && can); $("fDup").hidden = !ev;
   $("dlg").showModal();
 }
+function syncDlg(){
+  $("fUntilRow").hidden = $("fRep").value === "none";
+  const c = $("fConf").checked;
+  if (c) { $("fImp").checked = false; document.querySelectorAll("#fWho input").forEach(i => i.checked = false); }
+  $("fImp").disabled = c; document.querySelectorAll("#fWho input").forEach(i => i.disabled = c);
+}
+$("fRep").onchange = $("fConf").onchange = syncDlg;
 function tAll(){ $("fT1").hidden = $("fT2").hidden = $("fAll").checked; }
 $("fAll").onchange = tAll;
 $("add").onclick = () => openDlg(null);
@@ -436,8 +732,8 @@ $("fSave").onclick = async () => {
   const e = new Date(($("fD2").value || $("fD1").value) + "T" + (all ? "23:59" : $("fT2").value || "00:00"));
   if (isNaN(s) || isNaN(e) || e < s) return $("fMsg").textContent = "Dates invalides";
   const row = {title:t, description:$("fDesc").value.trim() || null, location:$("fLoc").value.trim() || null,
-    starts_at:s.toISOString(), ends_at:e.toISOString(), all_day:all, important:$("fImp").checked};
-  const ids = [...document.querySelectorAll("#fWho input:checked")].map(x => x.value);
+    starts_at:s.toISOString(), ends_at:e.toISOString(), all_day:all, important:$("fImp").checked, confidential:$("fConf").checked, recurrence:$("fRep").value, repeat_until:($("fRep").value !== "none" && $("fUntil").value) || null};
+  const ids = $("fConf").checked ? [] : [...document.querySelectorAll("#fWho input:checked")].map(x => x.value);
   let id = S.edit?.id, r;
   if (id) r = await sb.from("events").update(row).eq("id", id);
   else { r = await sb.from("events").insert({...row, family_id:S.fam.id, created_by:S.user.id}).select("id").single(); id = r.data?.id; }
@@ -454,6 +750,19 @@ $("fDel").onclick = async () => {
   const r = await sb.from("events").delete().eq("id", S.edit.id);
   if (r.error) return $("fMsg").textContent = r.error.message;
   $("dlg").close(); loadEvents();
+};
+
+/* ---------- Signaler un problème ---------- */
+const APP_VERSION = "1.0";
+$("bReport").onclick = () => { $("pdlg").close(); $("rMsg").textContent = ""; $("rText").value = ""; $("rdlg").showModal(); };
+$("rClose").onclick = () => $("rdlg").close();
+$("rSend").onclick = async () => {
+  const msg = $("rText").value.trim();
+  if (msg.length < 5) return $("rMsg").textContent = "Décris le problème en quelques mots (5 caractères minimum).";
+  const tech = $("rTech").checked ? {plateforme: isNative ? Capacitor.getPlatform() : "web", version:APP_VERSION, navigateur:navigator.userAgent, ecran:innerWidth + "x" + innerHeight, famille:S.fam.id} : null;
+  const {error} = await sb.from("problem_reports").insert({user_id:S.user.id, email:S.user.email, category:$("rCat").value, message:msg, tech});
+  if (error) return $("rMsg").textContent = error.message;
+  $("rdlg").close(); alert("Merci, ton message a bien été envoyé.");
 };
 
 /* ---------- Notifications ---------- */
@@ -487,6 +796,20 @@ $("nSave").onclick = async () => {
   if (p.enabled) registerPush();
 };
 
+
+/* ---------- Apparence ---------- */
+function applyTheme(t){
+  const r = document.documentElement;
+  if (t !== "dark") t = "light";
+  r.dataset.theme = t;
+  try { localStorage.setItem("theme", t); } catch {}
+  document.querySelectorAll("#pTheme button").forEach(b => b.classList.toggle("p", b.dataset.t === t));
+  const dark = t === "dark";
+  document.querySelector('meta[name="theme-color"]').content = dark ? "#181824" : "#F8FAFC";
+  const tb = $("bTheme"); if (tb) tb.innerHTML = dark ? IC.sun : IC.moon;
+}
+$("pTheme").onclick = e => { const b = e.target.closest("[data-t]"); if (b) applyTheme(b.dataset.t); };
+{ let t = "light"; try { t = localStorage.getItem("theme") || "light"; } catch {} applyTheme(t); }
 
 sb.auth.getSession().then(({data}) => { if (!data.session) show("auth"); });
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
