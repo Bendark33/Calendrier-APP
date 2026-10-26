@@ -123,6 +123,11 @@ fieldset{border:0;padding:0;margin:0}
 @media (max-width:600px){
 dialog{width:100%;max-width:none;margin:auto 0 0;border-radius:24px 24px 0 0;max-height:92vh;overflow:auto;padding:12px 20px calc(20px + env(safe-area-inset-bottom,0px))}
 dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;background:var(--bd);margin:0 auto 14px}}
+/* Œil mot de passe */
+#auth .pw{position:relative}
+#auth .pw input{padding-right:48px}
+#auth .pw .eye{position:absolute;right:4px;top:4px;bottom:10px;width:42px;padding:0;background:none;color:var(--mu);display:flex;align-items:center;justify-content:center;border-radius:10px}
+#auth .pw .eye:hover,#auth .pw .eye:focus-visible{color:var(--tx)}
 </style>
 </head>
 <body>
@@ -134,11 +139,28 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
     <h2 style="font-size:16px;margin:0 0 8px">Connexion</h2>
     <label>Email</label><input id="email" type="email" autocomplete="email">
     <label>Mot de passe</label><input id="pass" type="password" autocomplete="current-password">
+    <div style="text-align:right;margin-top:6px"><button id="toForgot" type="button" style="background:none;padding:4px 0;color:var(--ac);font-size:13px">Mot de passe oublié ?</button></div>
     <div class="msg" id="loginMsg"></div>
     <button class="p" id="bIn" style="width:100%">Se connecter</button>
     <div class="or"><span>ou</span></div>
     <button id="bGoogle" class="g"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16.9z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-2.9-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.100 0 24s.9 7.600 2.600 10.800l7.900-6.100z"/><path fill="#34A853" d="M24 48c6.500 0 11.900-2.100 15.900-5.800l-7.100-5.500c-2 1.400-4.600 2.200-8.800 2.200-6.300 0-11.600-4.100-13.500-9.800l-7.900 6.100C6.500 42.600 14.600 48 24 48z"/></svg>Continuer avec Google</button>
     <p style="margin:14px 0 0;text-align:center"><label>Pas encore de compte ?</label> <button id="toSignup">Créer un compte</button></p>
+  </div>
+  <div id="forgotBox" hidden>
+    <h2 style="font-size:16px;margin:0 0 8px">Mot de passe oublié</h2>
+    <p style="margin:0 0 8px;font-size:14px;color:var(--mu)">Entre ton adresse email : tu recevras un lien pour choisir un nouveau mot de passe.</p>
+    <label>Email</label><input id="fEmail" type="email" autocomplete="email">
+    <div class="msg" id="forgotMsg"></div>
+    <button class="p" id="bForgot" style="width:100%">Envoyer le lien</button>
+    <p style="margin:14px 0 0;text-align:center"><button id="fBack" type="button">Retour à la connexion</button></p>
+  </div>
+  <div id="resetBox" hidden>
+    <h2 style="font-size:16px;margin:0 0 8px">Nouveau mot de passe</h2>
+    <label>Nouveau mot de passe (6 caractères minimum)</label><input id="rPass" type="password" autocomplete="new-password">
+    <label>Confirmer le mot de passe</label><input id="rPass2" type="password" autocomplete="new-password">
+    <div class="msg" id="resetMsg"></div>
+    <button class="p" id="bReset" style="width:100%">Enregistrer</button>
+    <p style="margin:14px 0 0;text-align:center"><button id="rCancel" type="button">Annuler</button></p>
   </div>
   <div id="signupBox" hidden>
     <h2 style="font-size:16px;margin:0 0 8px">Créer un compte</h2>
@@ -299,6 +321,10 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
 <script>
 const SUPABASE_URL = "https://oxctvckwjdrkqctjybfc.supabase.co";
 const SUPABASE_KEY = "sb_publishable_eUk7TWztGhed7aXSABHCsg_eCBjy1yb";
+// Lecture de l’URL avant createClient (qui nettoie le hash) : lien de reset valide ou expiré ?
+const _hp = new URLSearchParams(location.hash.slice(1));
+let recovering = _hp.get("type") === "recovery";
+const linkExpired = !!(_hp.get("error_code") || _hp.get("error"));
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const $ = id => document.getElementById(id);
@@ -329,7 +355,31 @@ const grad = (cs, dir) => { const c = cs.length > 1 ? cs : [cs[0], cs[0]], n = c
 const tint = cs => "linear-gradient(90deg," + (cs.length > 1 ? cs : [cs[0], cs[0]]).map(x => x + "40").join(",") + ")";
 
 /* ---------- Connexion ---------- */
-function authMode(m){ $("loginBox").hidden = m !== "login"; $("signupBox").hidden = m !== "signup"; $("loginMsg").textContent = $("signupMsg").textContent = ""; }
+function authMode(m){
+  ["login","signup","forgot","reset"].forEach(x => $(x + "Box").hidden = x !== m);
+  ["loginMsg","signupMsg","forgotMsg","resetMsg"].forEach(i => setMsg(i, ""));
+  document.querySelectorAll("#auth .pw input").forEach(i => i.hide && i.hide());
+}
+function setMsg(id, t, ok){ const el = $(id); el.textContent = t; el.style.color = ok ? "#16a34a" : ""; }
+/* Œil : afficher / masquer le mot de passe (tous les champs de l’écran de connexion) */
+{
+  const svg = p => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
+  const EYE = svg('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>');
+  const EYE_OFF = svg('<path d="M17.9 17.9A10.4 10.4 0 0 1 12 19c-6.5 0-10-7-10-7a17.5 17.5 0 0 1 4.1-5.1M9.9 5.2A9.7 9.7 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-2.2 3.2M1 1l22 22M9.9 9.9a3 3 0 0 0 4.2 4.2"/>');
+  document.querySelectorAll('#auth input[type="password"]').forEach(inp => {
+    const w = document.createElement("div"); w.className = "pw";
+    inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
+    const b = document.createElement("button"); b.type = "button"; b.className = "eye";
+    const set = on => {
+      inp.type = on ? "text" : "password"; b.innerHTML = on ? EYE_OFF : EYE;
+      b.setAttribute("aria-label", on ? "Masquer le mot de passe" : "Afficher le mot de passe");
+      b.setAttribute("aria-pressed", String(on));
+    };
+    b.onclick = () => { set(inp.type === "password"); inp.focus(); };
+    inp.hide = () => set(false);
+    set(false); w.appendChild(b);
+  });
+}
 const googleSignIn = async () => {
   $("loginMsg").textContent = $("signupMsg").textContent = "";
   const showErr = m => { $((!$("signupBox").hidden) ? "signupMsg" : "loginMsg").textContent = /provider is not enabled|Unsupported provider/i.test(m) ? "La connexion Google n’est pas encore activée." : m; };
@@ -354,14 +404,47 @@ if (isNative) {
     try { const B = plug("Browser"); if (B && B.close) B.close(); } catch {}
     try {
       const u = new URL(url), code = u.searchParams.get("code"), h = new URLSearchParams(u.hash.slice(1));
+      if (h.get("type") === "recovery") recovering = true;
       if (code) { const r = await sb.auth.exchangeCodeForSession(code); if (r.error) alert(r.error.message); }
       else if (h.get("access_token")) await sb.auth.setSession({access_token:h.get("access_token"), refresh_token:h.get("refresh_token")});
+      else if (h.get("error_code")) { show("auth"); authMode("forgot"); setMsg("forgotMsg", "Ce lien a expiré ou a déjà été utilisé. Redemande un lien."); }
+      if (recovering && h.get("access_token")) showReset();
     } catch (e) { alert("Connexion Google impossible : " + ((e && e.message) || e)); }
   });
 }
 $("bGoogle").onclick = $("bGoogle2").onclick = googleSignIn;
 $("toSignup").onclick = () => authMode("signup");
 $("toLogin").onclick = () => authMode("login");
+/* ---------- Mot de passe oublié ---------- */
+// Web : on revient sur la même page ; appli Android : lien profond (déjà utilisé pour Google)
+const RESET_REDIRECT = isNative ? "com.bendark.calendy://auth" : location.origin + location.pathname;
+function showReset(){ show("auth"); authMode("reset"); }
+$("toForgot").onclick = () => { const e = $("email").value.trim(); authMode("forgot"); $("fEmail").value = e; };
+$("fBack").onclick = () => authMode("login");
+$("bForgot").onclick = async () => {
+  const email = $("fEmail").value.trim();
+  if (!email) return setMsg("forgotMsg", "Entre ton adresse email");
+  const b = $("bForgot"); b.disabled = true; setMsg("forgotMsg", "");
+  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: RESET_REDIRECT});
+  if (error) {
+    setMsg("forgotMsg", /rate|seconds|too many|limit/i.test(error.message) ? "Trop de demandes : patiente un peu avant de réessayer." : error.message);
+    b.disabled = false; return;
+  }
+  // Message volontairement neutre : on ne révèle pas si le compte existe
+  setMsg("forgotMsg", "Si un compte existe pour cette adresse, un lien vient d’être envoyé. Pense à vérifier tes spams.", true);
+  setTimeout(() => { b.disabled = false; }, 60000);
+};
+$("bReset").onclick = async () => {
+  const p = $("rPass").value;
+  if (p.length < 6) return setMsg("resetMsg", "Le mot de passe doit faire au moins 6 caractères");
+  if (p !== $("rPass2").value) return setMsg("resetMsg", "Les deux mots de passe ne sont pas identiques");
+  const {error} = await sb.auth.updateUser({password: p});
+  if (error) return setMsg("resetMsg", /different|same/i.test(error.message) ? "Le nouveau mot de passe doit être différent de l’ancien." : error.message);
+  recovering = false;
+  try { history.replaceState(null, "", location.pathname); } catch {}
+  boot();
+};
+$("rCancel").onclick = () => { recovering = false; logout(); };
 $("bIn").onclick = async () => {
   $("loginMsg").textContent = "";
   const {error} = await sb.auth.signInWithPassword({email:$("email").value.trim(), password:$("pass").value});
@@ -388,7 +471,7 @@ $("bMenu").onclick = openDrawer; $("dbg").onclick = closeDrawer; $("dClose").onc
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
 $("drawer").addEventListener("click", e => { if (e.target.closest("#bNewFam, #bOut2")) closeDrawer(); });
 /* ---------- Partager la famille ---------- */
-const SITE_URL = "https://calendrier-app.benjamin33370.workers.dev";
+const SITE_URL = "https://calendy.benweb.ovh";
 function inviteLink(){ return SITE_URL + "/?code=" + S.fam.invite_code; }
 function inviteText(){
   return `Salut !\n\nJe t’invite à rejoindre notre famille « ${S.fam.name} » sur Calendy.\n\nOuvre ce lien, crée ton compte (ou connecte-toi) et choisis ton prénom : tu rejoindras la famille automatiquement.\n${inviteLink()}\n\nSi le lien ne fonctionne pas, ouvre ${SITE_URL} et saisis le code : ${S.fam.invite_code}\n\nÀ très vite !\n${S.me.display_name}`;
@@ -456,9 +539,10 @@ $("bOut1").onclick = $("bOut2").onclick = logout;
 let lastUid;
 sb.auth.onAuthStateChange((_e, s) => {
   const u = s?.user || null;
+  if (_e === "PASSWORD_RECOVERY") { recovering = true; S.user = u; lastUid = u?.id || null; setTimeout(showReset, 0); return; }
   if ((u?.id || null) === lastUid) return;
   lastUid = u?.id || null; S.user = u;
-  setTimeout(() => boot(), 0);
+  setTimeout(() => recovering ? showReset() : boot(), 0);
 });
 
 /* ---------- Famille ---------- */
@@ -827,7 +911,10 @@ function applyTheme(t){
 $("pTheme").onclick = e => { const b = e.target.closest("[data-t]"); if (b) applyTheme(b.dataset.t); };
 { let t = "light"; try { t = localStorage.getItem("theme") || "light"; } catch {} applyTheme(t); }
 
-sb.auth.getSession().then(({data}) => { if (!data.session) show("auth"); });
+sb.auth.getSession().then(({data}) => {
+  if (!data.session) show("auth");
+  if (linkExpired) { show("auth"); authMode("forgot"); setMsg("forgotMsg", "Ce lien a expiré ou a déjà été utilisé. Redemande un lien."); }
+});
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>
