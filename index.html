@@ -135,6 +135,7 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
 
 <section id="auth" class="card narrow" hidden>
   <div class="brand" style="margin-bottom:14px"><span class="logo">C</span><strong>Calendy</strong></div>
+  <p id="aInv" hidden style="background:var(--pc);color:var(--ac);padding:10px 12px;border-radius:12px;font-size:14px;font-weight:500;margin:0 0 12px">Tu as été invité(e) à rejoindre une famille sur Calendy. Crée ton compte (ou connecte-toi si tu en as déjà un) pour continuer.</p>
   <div id="loginBox">
     <h2 style="font-size:16px;margin:0 0 8px">Connexion</h2>
     <label>Email</label><input id="email" type="email" autocomplete="email">
@@ -181,12 +182,15 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
     <p id="oInv" hidden style="background:var(--pc);color:var(--ac);padding:10px 12px;border-radius:12px;font-size:14px;font-weight:500;margin:0 0 12px">Tu as reçu une invitation : choisis ton prénom et ta couleur, puis touche « Rejoindre ».</p>
     <label>Ton prénom</label><input id="oName" maxlength="40">
     <div class="row"><label>Ta couleur</label><input id="oColor" type="color" value="#3b82f6"></div>
+    <div id="oCreateBox">
     <hr style="border:0;border-top:1px solid var(--bd);margin:14px 0">
     <label>Créer une famille : nom</label><input id="oFam" maxlength="80" placeholder="Famille Dupont">
     <button class="p" id="bCreate">Créer</button>
     <hr style="border:0;border-top:1px solid var(--bd);margin:14px 0">
+    </div>
     <label>Ou rejoindre avec un code d’invitation</label><input id="oCode" placeholder="ex. a1b2c3d4">
     <button id="bJoin">Rejoindre</button>
+    <p style="margin:10px 0 0"><button id="oSkip" type="button" hidden style="background:none;padding:4px 0;color:var(--ac);font-size:13px">Pas d’invitation ? Créer ma propre famille</button></p>
     <div class="msg" id="oMsg"></div>
     <div class="row"><button id="oBack" hidden>Retour</button><button id="bOut1">Se déconnecter</button></div>
   </div>
@@ -359,7 +363,9 @@ function authMode(m){
   ["login","signup","forgot","reset"].forEach(x => $(x + "Box").hidden = x !== m);
   ["loginMsg","signupMsg","forgotMsg","resetMsg"].forEach(i => setMsg(i, ""));
   document.querySelectorAll("#auth .pw input").forEach(i => i.hide && i.hide());
+  $("aInv").hidden = !(pendingCode() && (m === "login" || m === "signup"));
 }
+function pendingCode(){ try { return localStorage.getItem("pendingCode"); } catch { return null; } }
 function setMsg(id, t, ok){ const el = $(id); el.textContent = t; el.style.color = ok ? "#16a34a" : ""; }
 /* Œil : afficher / masquer le mot de passe (tous les champs de l’écran de connexion) */
 {
@@ -456,7 +462,9 @@ $("bUp").onclick = async () => {
   if (!email) return $("signupMsg").textContent = "L’email est requis";
   if (password.length < 6) return $("signupMsg").textContent = "Le mot de passe doit faire au moins 6 caractères";
   if (password !== $("suPass2").value) return $("signupMsg").textContent = "Les deux mots de passe ne sont pas identiques";
-  const r = await sb.auth.signUp({email, password});
+  const pend = pendingCode();
+  // Si le mail de confirmation s’ouvre dans un autre navigateur, le code d’invitation voyage dans le lien
+  const r = await sb.auth.signUp({email, password, options: pend ? {emailRedirectTo: SITE_URL + "/?code=" + pend} : undefined});
   if (r.error) return $("signupMsg").textContent = r.error.message;
   if (!r.data.session) { authMode("login"); $("email").value = email; $("loginMsg").textContent = "Compte créé. Confirme ton email, puis connecte-toi."; }
 };
@@ -575,7 +583,7 @@ async function boot(fid){
     .subscribe();
   if (pend) joinFlow(pend);
 }
-function inviteMode(on){ $("oInv").hidden = !on; $("bJoin").classList.toggle("p", on); $("bCreate").classList.toggle("p", !on); }
+function inviteMode(on){ $("oCreateBox").hidden = on; $("oSkip").hidden = !(on && !(S.all || []).length); $("oInv").hidden = !on; $("bJoin").classList.toggle("p", on); $("bCreate").classList.toggle("p", !on); }
 function joinFlow(code){
   $("oMsg").textContent = ""; $("oName").value = S.me.display_name; $("oColor").value = S.me.color;
   $("oCode").value = code; inviteMode(true); $("oBack").hidden = false; show("onboard");
@@ -595,6 +603,7 @@ $("bNewFam").onclick = () => {
   $("oMsg").textContent = ""; $("oName").value = S.me.display_name; $("oColor").value = S.me.color;
   $("oBack").hidden = false; inviteMode(false); show("onboard");
 };
+$("oSkip").onclick = () => { try { localStorage.removeItem("pendingCode"); } catch {} boot(); };
 $("oBack").onclick = () => { try { localStorage.removeItem("pendingCode"); } catch {} boot(S.fam.id); };
 $("bCode").onclick = () => navigator.clipboard?.writeText(S.fam.invite_code).then(() => $("bCode").textContent = "Code copié");
 
@@ -912,7 +921,7 @@ $("pTheme").onclick = e => { const b = e.target.closest("[data-t]"); if (b) appl
 { let t = "light"; try { t = localStorage.getItem("theme") || "light"; } catch {} applyTheme(t); }
 
 sb.auth.getSession().then(({data}) => {
-  if (!data.session) show("auth");
+  if (!data.session) { show("auth"); authMode(pendingCode() ? "signup" : "login"); }
   if (linkExpired) { show("auth"); authMode("forgot"); setMsg("forgotMsg", "Ce lien a expiré ou a déjà été utilisé. Redemande un lien."); }
 });
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
