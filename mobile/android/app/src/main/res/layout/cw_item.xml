@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cw_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:minHeight="40dp"
+    android:orientation="horizontal"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
+
+    <!-- Barre de couleur : une portion par personne concernée -->
+    <LinearLayout
+        android:layout_width="4dp"
+        android:layout_height="30dp"
+        android:layout_marginEnd="10dp"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/cw_bar1"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/cw_bar2"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/cw_bar3"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/cw_time"
+        android:layout_width="58dp"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:textColor="@color/cw_muted"
+        android:textSize="13sp" />
+
+    <ImageView
+        android:id="@+id/cw_kind"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginEnd="6dp"
+        android:contentDescription="@null" />
+
+    <TextView
+        android:id="@+id/cw_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="@color/cw_text"
+        android:textSize="14sp" />
+
+    <ImageView
+        android:id="@+id/cw_star"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:layout_marginStart="6dp"
+        android:contentDescription="@null"
+        android:src="@drawable/cw_ic_star" />
+</LinearLayout>

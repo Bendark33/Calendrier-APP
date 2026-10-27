@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cw_widget_name">Calendy · Aujourd’hui</string>
+    <string name="cw_widget_desc">Les événements de la journée</string>
+    <string name="cw_add">Ajouter un événement</string>
+    <string name="cw_empty_today">Rien de prévu aujourd’hui</string>
+    <string name="cw_empty_nodata">Ouvre Calendy et connecte-toi pour afficher tes événements</string>
+    <string name="cw_empty_stale">Ouvre Calendy pour mettre à jour</string>
+</resources>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="cw_bg">#FFFFFF</color>
+    <color name="cw_text">#1B1F2A</color>
+    <color name="cw_muted">#6B7280</color>
+    <color name="cw_accent">#4F46E5</color>
+    <color name="cw_accent_solid">#4F46E5</color>
+</resources>

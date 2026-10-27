@@ -391,6 +391,9 @@ function plug(name){
 // Chaque fenêtre/menu ouvert ajoute une entrée à l'historique ; « retour » la retire et ferme l'élément du dessus.
 // Dans l'appli Android, Capacitor fait « retour » dans l'historique de la WebView, puis quitte l'appli s'il n'y en a plus.
 const ov = (() => {
+  // Appli Android : la touche « retour » est interceptée (voir plus bas) -> simple liste des éléments ouverts, SANS historique.
+  // Web : on passe par l'historique du navigateur (une entrée par fenêtre ouverte).
+  const nativeBack = isNative && !!(plug("App") && plug("App").addListener);
   const stack = [], todo = []; let waiting = 0;
   const flush = () => { while (!waiting && todo.length) todo.shift()(); };   // on attend la fin d'un « retour » en cours avant d'enchaîner
   addEventListener("popstate", () => {
@@ -399,14 +402,34 @@ const ov = (() => {
     if (r && r.isOpen()) r.close();
   });
   return {
-    open(el, isOpen, close){ todo.push(() => { if (!isOpen() || stack.some(r => r.el === el)) return; stack.push({el, isOpen, close}); history.pushState({ov:1}, ""); }); flush(); },
-    closed(el){ todo.push(() => { const i = stack.findIndex(r => r.el === el); if (i < 0) return; stack.splice(i, 1); waiting++; history.back(); }); flush(); }
+    back(){   // touche « retour » de l'appli Android : ferme l'élément du dessus, renvoie false s'il n'y en a pas
+      while (stack.length && !stack[stack.length - 1].isOpen()) stack.pop();   // entrées périmées : on les écarte
+      const r = stack[stack.length - 1];
+      if (!r) return false;
+      r.close(); return true;
+    },
+    open(el, isOpen, close){
+      if (nativeBack) { if (isOpen() && !stack.some(r => r.el === el)) stack.push({el, isOpen, close}); return; }
+      todo.push(() => { if (!isOpen() || stack.some(r => r.el === el)) return; stack.push({el, isOpen, close}); history.pushState({ov:1}, ""); }); flush(); },
+    closed(el){
+      if (nativeBack) { const i = stack.findIndex(r => r.el === el); if (i >= 0) stack.splice(i, 1); return; }
+      todo.push(() => { const i = stack.findIndex(r => r.el === el); if (i < 0) return; stack.splice(i, 1); waiting++; history.back(); }); flush(); }
   };
 })();
 {
   const showModal = HTMLDialogElement.prototype.showModal;
   HTMLDialogElement.prototype.showModal = function(){ showModal.call(this); ov.open(this, () => this.open, () => slideClose(this)); };
   document.querySelectorAll("dialog").forEach(d => d.addEventListener("close", () => ov.closed(d)));
+}
+// Appli Android : on gère nous-mêmes la touche « retour ». L'historique de la WebView ne suffit pas : Chrome ignore les
+// entrées créées sans toucher l'écran (par ex. fenêtre ouverte depuis le bouton « + » du widget).
+if (isNative) {
+  const A = plug("App");
+  if (A && A.addListener) A.addListener("backButton", () => {
+    if (ov.back()) return;   // une fenêtre / un menu est ouvert : on le ferme
+    // Rien à fermer : on quitte l'appli. On ignore volontairement « canGoBack » : l'appli est une seule page, sans historique utile.
+    Promise.resolve().then(() => A.exitApp()).catch(() => { if (A.minimizeApp) A.minimizeApp(); });
+  });
 }
 // Lien d’invitation : /?code=XXXX -> on garde le code jusqu’à la connexion
 try { const c = new URLSearchParams(location.search).get("code"); if (c && /^[A-Za-z0-9]{4,16}$/.test(c)) { localStorage.setItem("pendingCode", c.toLowerCase()); history.replaceState(null, "", location.pathname); } } catch {}
@@ -471,6 +494,7 @@ if (isNative) {
   const A = plug("App");
   if (A && A.addListener) A.addListener("appUrlOpen", async ({url}) => {
     if (!url || !url.startsWith("com.bendark.calendy://")) return;
+    if (url.startsWith("com.bendark.calendy://new")) { if (S.me && !$("app").hidden) $("add").click(); else window.__openNew = true; return; }
     try { const B = plug("Browser"); if (B && B.close) B.close(); } catch {}
     try {
       const u = new URL(url), code = u.searchParams.get("code"), h = new URLSearchParams(u.hash.slice(1));
@@ -680,6 +704,7 @@ document.addEventListener("touchstart", e => {
 async function logout(){
   const wait = (p, ms) => Promise.race([p, new Promise(r => setTimeout(r, ms))]);
   try { if (S.token) await wait(sb.from("device_tokens").delete().eq("token", S.token), 3000); } catch (e) { console.warn("Déconnexion : appareil", e); }
+  try { await wait(widgetClear(), 1500); } catch {}
   try { await wait(sb.auth.signOut({scope:"local"}), 3000); } catch (e) { console.warn("Déconnexion : session", e); }
   // Filet de sécurité : on efface la session locale même si la requête a échoué
   try { Object.keys(localStorage).filter(k => k.startsWith("sb-")).forEach(k => localStorage.removeItem(k)); } catch {}
@@ -699,7 +724,7 @@ sb.auth.onAuthStateChange((_e, s) => {
 /* ---------- Famille ---------- */
 async function boot(fid){
   if (S.ch) { sb.removeChannel(S.ch); S.ch = null; }
-  if (!S.user) return show("auth");
+  if (!S.user) { widgetClear(); return show("auth"); }
   const [m, p, n] = await Promise.all([
     sb.from("family_members").select("family_id,role,display_name,color,joined_at,families(name,invite_code)").eq("user_id", S.user.id).order("joined_at"),
     sb.from("user_plans").select("plan,pro_until").maybeSingle(),
@@ -722,9 +747,11 @@ async function boot(fid){
   if (isNative && S.prefs.enabled) registerPush();
   await loadMembers(); setView(S.view);
   S.ch = sb.channel("ev-" + S.fam.id)
-    .on("postgres_changes", {event:"*", schema:"public", table:"events", filter:"family_id=eq." + S.fam.id}, loadEvents)
+    .on("postgres_changes", {event:"*", schema:"public", table:"events", filter:"family_id=eq." + S.fam.id}, () => { loadEvents(); syncWidget(true); })
     .subscribe();
+  syncWidget(true);
   if (pend) joinFlow(pend);
+  else if (window.__openNew) { window.__openNew = false; setTimeout(() => $("add").click(), 400); }
 }
 function inviteMode(on){ $("oCreateBox").hidden = on; $("oSkip").hidden = !(on && !(S.all || []).length); $("oInv").hidden = !on; $("bJoin").classList.toggle("p", on); $("bCreate").classList.toggle("p", !on); }
 function joinFlow(code){
@@ -820,6 +847,41 @@ function expand(list, a, b){
     }
   }
   return out;
+}
+/* ---------- Widget Android : résumé des 14 prochains jours (lu par le widget de l'écran d'accueil) ---------- */
+// Le widget filtre lui-même sur la date du jour ; on lui envoie donc plusieurs jours, répétitions déjà calculées.
+function widgetEvents(data, a, b){
+  return expand(data, a, b)
+    .filter(e => new Date(e.starts_at) < b && new Date(e.ends_at) >= a)
+    .map(e => ({t: e.title, s: +new Date(e.starts_at), e: +new Date(e.ends_at), a: e.all_day ? 1 : 0, k: e.kind || "event", i: e.important ? 1 : 0, c: cols(e).slice(0, 3)}))
+    .sort((x, y) => x.s - y.s);
+}
+let wgTimer = 0, wgSig = "", wgAt = 0;
+function syncWidget(force){
+  if (!isNative || !S.fam) return;
+  if (!force && Date.now() - wgAt < 60000) return;   // au plus une synchronisation par minute (sauf changement d'événement)
+  clearTimeout(wgTimer); wgTimer = setTimeout(pushWidget, 1500);
+}
+async function pushWidget(){
+  const W = plug("WidgetBridge"); if (!W || !S.fam) return;
+  wgAt = Date.now();
+  const a = new Date(); a.setHours(0, 0, 0, 0);
+  const b = new Date(a.getFullYear(), a.getMonth(), a.getDate() + 14);
+  const {data, error} = await sb.from("events").select("*,event_attendees(user_id)").eq("family_id", S.fam.id)
+    .or(`and(starts_at.lt.${b.toISOString()},ends_at.gte.${a.toISOString()}),and(recurrence.neq.none,starts_at.lt.${b.toISOString()})`).order("starts_at");
+  if (error || !data) return;
+  const ev = widgetEvents(data, a, b), sig = JSON.stringify(ev) + a.getTime();
+  if (sig === wgSig) return;   // rien de changé : on ne réveille pas le widget
+  try { await W.update({json: JSON.stringify({v: 1, to: +b, ev})}); wgSig = sig; } catch (e) { console.warn("Widget", e); }
+}
+async function widgetClear(){ try { wgSig = ""; const W = plug("WidgetBridge"); if (W) await W.clear(); } catch {} }
+if (isNative) {
+  const A = plug("App");
+  if (A && A.addListener) {
+    A.addListener("appStateChange", ({isActive}) => { if (isActive) syncWidget(); });   // retour dans l'appli : on actualise le widget
+    // Lancement à froid par le bouton « + » du widget
+    if (A.getLaunchUrl) A.getLaunchUrl().then(r => { if (r && r.url && r.url.startsWith("com.bendark.calendy://new")) window.__openNew = true; }).catch(() => {});
+  }
 }
 const PASTELS = ["#CDF3E4", "#D6EEFF", "#FFE1D6", "#EAE0F8", "#E7F7C9", "#FFE6F0", "#DCEAF9"];
 const IC = {
@@ -1188,10 +1250,10 @@ sb.auth.getSession().then(({data}) => {
 /* ---------- Fenêtres (mobile) : glisser vers le bas ou toucher la poignée pour fermer ---------- */
 // Fermeture animée : la feuille descend (comme après un glissement), puis se ferme. Sur grand écran : fermeture directe.
 function slideClose(d){
-  if (!d.open) return;
+  if (!d.open || d.dataset.closing) return;
   if (!matchMedia("(max-width: 600px)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches) return d.close();
-  d.style.transition = "transform .2s ease-in"; d.style.transform = "translateY(100%)";
-  setTimeout(() => { d.close(); d.style.transition = d.style.transform = ""; }, 200);
+  d.dataset.closing = "1"; d.style.transition = "transform .27s ease-in"; d.style.transform = "translateY(100%)";
+  setTimeout(() => { d.close(); d.style.transition = d.style.transform = ""; delete d.dataset.closing; }, 270);
 }
 document.querySelectorAll("dialog").forEach(d => {
   const sheet = () => matchMedia("(max-width: 600px)").matches;
@@ -1218,8 +1280,8 @@ document.querySelectorAll("dialog").forEach(d => {
     ok = on = false;
     const dy = (e.changedTouches?.[0]?.clientY ?? y0) - y0, v = dy / Math.max(e.timeStamp - t0, 1);
     if (dy > 110 || (dy > 40 && v > .6)) {
-      d.style.transition = "transform .18s ease-in"; d.style.transform = "translateY(100%)";
-      setTimeout(() => { d.close(); d.style.transition = d.style.transform = ""; }, 180);
+      d.style.transition = "transform .25s ease-in"; d.style.transform = "translateY(100%)";
+      setTimeout(() => { d.close(); d.style.transition = d.style.transform = ""; }, 250);
     } else {   // pas assez glissé : retour en place
       d.style.transition = "transform .2s ease-out"; d.style.transform = "";
       setTimeout(() => { d.style.transition = ""; }, 210);
