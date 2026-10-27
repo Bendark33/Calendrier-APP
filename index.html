@@ -96,9 +96,32 @@ label{font-size:13px;color:var(--mu)}
 .tabbar button.p{background:none;color:var(--ac)}
 .tabbar button.p .ind{background:var(--pc)}
 .tabbar .plus{width:40px;height:40px;margin:-3px 0;border-radius:13px;background:var(--ac);color:var(--pt);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px #00000033}
-@keyframes swl{from{transform:translateX(44px);opacity:.25}to{transform:none;opacity:1}}
-@keyframes swr{from{transform:translateX(-44px);opacity:.25}to{transform:none;opacity:1}}
-.sw-l{animation:swl .28s ease}.sw-r{animation:swr .28s ease}
+/* Balayage : le geste horizontal est géré par l'appli, le défilement vertical reste natif */
+#app{touch-action:pan-y pinch-zoom;overflow-x:clip}
+#helloStrip,#viewCard,#dayCard,#cells{will-change:transform}
+/* Titre cliquable + sélecteur de date */
+.navrow .ttl{background:none;padding:6px 4px 6px 0;color:var(--ac);font-size:16px;font-weight:600;display:inline-flex;align-items:center;text-align:left}
+.navrow .ttl::after{content:"";width:7px;height:7px;border:solid currentColor;border-width:0 2px 2px 0;transform:translateY(-2px) rotate(45deg);margin-left:8px}
+#gdlg .gg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:10px}
+#gdlg .gh{text-align:center;font-size:12px;font-weight:600;color:var(--mu);padding:4px 0}
+#gdlg .gd{padding:0;aspect-ratio:1;border-radius:10px;background:transparent;font-weight:500;font-size:14px}
+#gdlg .gd.out{color:var(--mu);opacity:.55}
+#gdlg .gd.sel{background:var(--pc);color:var(--ac);font-weight:700}
+#gdlg .gd.today,#gdlg .gm.today{box-shadow:inset 0 0 0 1.5px var(--ac)}
+#gdlg .gg3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+#gdlg .gm{padding:14px 0;border-radius:12px;font-weight:600}
+#gdlg .gm.sel{background:var(--ac);color:var(--pt)}
+/* Vue année */
+#cells.year{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:4px}
+@media(min-width:560px){#cells.year{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:800px){#cells.year{grid-template-columns:repeat(4,1fr)}}
+.ym{background:var(--card);border-radius:14px;padding:10px;box-shadow:0 1px 2px var(--sh);cursor:pointer}
+.ymt{font-size:14px;font-weight:700;color:var(--ac);margin-bottom:6px}
+.yg{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;text-align:center;font-size:11px}
+.yg span{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--tx)}
+.yg .yh{font-size:9px;font-weight:700;color:var(--mu)}
+.yg .yd.ev{background:var(--pc);color:var(--ac);font-weight:700}
+.yg .yd.today{background:var(--ac);color:var(--pt);font-weight:700}
 .dbg{position:fixed;inset:0;z-index:19;background:#0F172A80;opacity:0;pointer-events:none;transition:opacity .25s}
 .dbg.open{opacity:1;pointer-events:auto}
 .drawer{position:fixed;top:0;bottom:0;left:0;width:min(84vw,310px);z-index:20;background:var(--card);color:var(--tx);padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px));border-radius:0 16px 16px 0;box-shadow:8px 0 30px #00000040;display:flex;flex-direction:column;gap:10px;transform:translateX(-102%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s linear .28s;overflow:auto}
@@ -121,11 +144,13 @@ fieldset{border:0;padding:0;margin:0}
 .dt{display:grid;grid-template-columns:3fr 2fr;gap:8px}
 .who label{display:inline-flex;gap:4px;align-items:center;margin-right:10px;color:var(--tx)}
 @media (max-width:600px){
-dialog{width:100%;max-width:none;margin:auto 0 0;border-radius:24px 24px 0 0;max-height:92vh;overflow:auto;padding:12px 20px calc(20px + env(safe-area-inset-bottom,0px))}
+dialog{overscroll-behavior:contain;width:100%;max-width:none;margin:auto 0 0;border-radius:24px 24px 0 0;max-height:92vh;overflow:auto;padding:12px 20px calc(20px + env(safe-area-inset-bottom,0px))}
 dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;background:var(--bd);margin:0 auto 14px}}
 /* Œil mot de passe */
 #auth .pw{position:relative}
 #auth .pw input{padding-right:48px}
+#auth .pw input::-ms-reveal,#auth .pw input::-ms-clear{display:none}
+#auth .pw input::-webkit-credentials-auto-fill-button{visibility:hidden;pointer-events:none;position:absolute;right:0}
 #auth .pw .eye{position:absolute;right:4px;top:4px;bottom:10px;width:42px;padding:0;background:none;color:var(--mu);display:flex;align-items:center;justify-content:center;border-radius:10px}
 #auth .pw .eye:hover,#auth .pw .eye:focus-visible{color:var(--tx)}
 </style>
@@ -202,11 +227,12 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
     <div class="brand"><span class="logo">C</span><strong>Calendy</strong></div>
     <span class="sp1"></span>
     <button id="bTheme" class="ib" aria-label="Changer de thème"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg></button>
+    <button id="bHelp" class="ib" aria-label="Aide et signalement"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.2-2.5 3.9M12 17.2h.01"/></svg></button>
     <button id="bAv" class="ib" aria-label="Mon profil"><span id="topAv" class="av sm"></span></button>
   </header>
   <div class="head">
-    <div class="row sp" style="flex-wrap:nowrap"><div><h1 id="hello"></h1><p id="helloSub"></p></div><div class="avs" id="helloAv"></div></div>
-    <div class="navrow"><strong id="title"></strong><span class="row" style="gap:0"><button class="ib" id="prev" aria-label="Période précédente"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><button class="ib acc" id="today" aria-label="Aujourd’hui"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/></svg></button><button class="ib" id="next" aria-label="Période suivante"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></span></div>
+    <div class="row sp" style="flex-wrap:nowrap"><div><h1 id="hello"></h1><p id="helloSub"></p></div></div>
+    <div class="navrow"><button id="title" class="ttl" aria-haspopup="dialog" aria-label="Choisir une date"></button><span class="row" style="gap:0"><button class="ib" id="prev" aria-label="Période précédente"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><button class="ib acc" id="today" aria-label="Aujourd’hui"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/></svg></button><button class="ib" id="next" aria-label="Période suivante"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></span></div>
     <div class="strip" id="helloStrip"></div>
     <div class="chips" id="chips"></div>
   </div>
@@ -221,8 +247,8 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
   <nav class="tabbar" aria-label="Navigation">
     <button id="vWeek"><span class="ind"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3M8 14h8"/></svg></span>Semaine</button>
     <button id="vMonth"><span class="ind"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3M8.5 14h.01M12 14h.01M15.5 14h.01M8.5 17h.01M12 17h.01"/></svg></span>Mois</button>
+    <button id="vYear"><span class="ind"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg></span>Année</button>
     <button id="add" aria-label="Ajouter un événement"><span class="ind"><span class="plus"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></span>Ajouter</button>
-    <button id="bProf"><span class="ind"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg></span>Profil</button>
   </nav>
   <div class="dbg" id="dbg"></div>
   <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Menu">
@@ -291,8 +317,15 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
   <div class="row sp" style="margin-top:14px"><button id="iClose">Fermer</button></div>
 </dialog>
 
+<dialog id="gdlg" aria-label="Choisir une date">
+  <div class="row sp" style="flex-wrap:nowrap"><button class="ib" id="gPrev" aria-label="Précédent"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><strong id="gTitle" style="font-size:17px"></strong><button class="ib" id="gNext" aria-label="Suivant"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></div>
+  <div id="gBody"></div>
+  <div class="row sp" style="margin-top:14px"><button id="gToday">Aujourd’hui</button><button id="gClose">Fermer</button></div>
+</dialog>
+
 <dialog id="rdlg">
-  <h1>Signaler un problème</h1>
+  <h1>Aide et signalement</h1>
+  <p style="color:var(--mu);font-size:14px;margin:0 0 10px">Un problème, une question ou une idée pour améliorer Calendy ? Dis-nous tout ici.</p>
   <label>Type</label>
   <select id="rCat" style="width:100%;margin:4px 0 10px"><option value="bug">Un problème (bug)</option><option value="suggestion">Une idée ou suggestion</option><option value="autre">Autre</option></select>
   <label>Décris ce qui se passe</label>
@@ -315,7 +348,7 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
     <button id="pRenew">Renouveler le code d’invitation</button><br>
     <small style="color:var(--mu)">Après le renouvellement, l’ancien code ne fonctionne plus.</small>
   </div>
-  <div class="row" style="margin-top:12px"><button id="bNotif">Notifications…</button><button id="bReport">Signaler un problème</button></div>
+  <div class="row" style="margin-top:12px"><button id="bNotif">Notifications…</button></div>
   <div class="msg" id="pMsg"></div>
   <div class="row sp"><button id="pClose">Fermer</button><button class="p" id="pSave">Enregistrer</button></div>
   <hr style="border:0;border-top:1px solid var(--bd);margin:14px 0">
@@ -520,20 +553,48 @@ $("bDelFam").onclick = async () => {
   try { localStorage.removeItem("famId"); } catch {}
   S.off = new Set(); boot();
 };
-/* ---------- Balayage : période suivante ou précédente ---------- */
-let tx = 0, ty = 0, tOk = false;
+/* ---------- Balayage : le contenu suit le doigt ---------- */
+let tx = 0, ty = 0, tt = 0, tOk = false, dragging = false, swBusy = false;
+const swEls = () => S.view === "week" ? [$("helloStrip"), $("cells")] : S.view === "year" ? [$("cells")] : [$("viewCard"), $("dayCard")];
+function swSet(dx, anim){
+  const o = 1 - Math.min(Math.abs(dx) / innerWidth, 1) * .6;
+  swEls().forEach(el => { el.style.transition = anim || "none"; el.style.transform = dx ? `translateX(${dx}px)` : ""; el.style.opacity = dx ? o : ""; });
+}
+const swClear = () => ["helloStrip", "viewCard", "dayCard", "cells"].forEach(i => { const el = $(i); el.style.transition = el.style.transform = el.style.opacity = ""; });
 document.addEventListener("touchstart", e => {
-  const t = e.touches[0]; tx = t.clientX; ty = t.clientY;
-  tOk = e.touches.length === 1 && !$("app").hidden && !document.querySelector("dialog[open]") && !$("drawer").classList.contains("open")
+  const t = e.touches[0]; tx = t.clientX; ty = t.clientY; tt = e.timeStamp; dragging = false;
+  tOk = !swBusy && e.touches.length === 1 && !$("app").hidden && !document.querySelector("dialog[open]") && !$("drawer").classList.contains("open")
     && !e.target.closest(".chips, input, select, textarea, .tabbar") && tx > 24 && tx < innerWidth - 24;
 }, {passive:true});
-document.addEventListener("touchend", e => {
-  if (!tOk) return; tOk = false;
-  const t = e.changedTouches[0], dx = t.clientX - tx, dy = t.clientY - ty;
-  if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-  const v = $("viewCard"); v.classList.remove("sw-l", "sw-r"); void v.offsetWidth; v.classList.add(dx < 0 ? "sw-l" : "sw-r");
-  go(dx < 0 ? 1 : -1);
+document.addEventListener("touchmove", e => {
+  if (!tOk) return;
+  const t = e.touches[0], dx = t.clientX - tx, dy = t.clientY - ty;
+  if (!dragging){
+    if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+    if (Math.abs(dx) < Math.abs(dy) * 1.3) { tOk = false; return; }   // geste vertical : on laisse défiler
+    dragging = true;
+  }
+  swSet(dx);   // le contenu suit le doigt
 }, {passive:true});
+document.addEventListener("touchend", e => {
+  if (!tOk || !dragging) { tOk = false; return; }
+  tOk = dragging = false;
+  const dx = e.changedTouches[0].clientX - tx, W = innerWidth, v = Math.abs(dx) / Math.max(e.timeStamp - tt, 1);
+  if (Math.abs(dx) < W * .25 && !(Math.abs(dx) > 40 && v > .5)) {   // pas assez : retour en place
+    swSet(0, "transform .2s ease-out, opacity .2s"); setTimeout(swClear, 220); return;
+  }
+  const dir = dx < 0 ? 1 : -1;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { swClear(); go(dir); return; }
+  swBusy = true;
+  swSet(-dir * W, "transform .16s ease-in, opacity .16s");   // l'ancien contenu sort…
+  setTimeout(() => {
+    go(dir);
+    swSet(dir * W * .5, "none"); void document.body.offsetWidth;   // …le nouveau arrive du côté opposé
+    swSet(0, "transform .26s cubic-bezier(.2,.8,.2,1), opacity .26s");
+    setTimeout(() => { swClear(); swBusy = false; }, 280);
+  }, 160);
+}, {passive:true});
+document.addEventListener("touchcancel", () => { if (dragging) { dragging = tOk = false; swSet(0, "transform .2s, opacity .2s"); setTimeout(swClear, 220); } }, {passive:true});
 async function logout(){
   const wait = (p, ms) => Promise.race([p, new Promise(r => setTimeout(r, ms))]);
   try { if (S.token) await wait(sb.from("device_tokens").delete().eq("token", S.token), 3000); } catch (e) { console.warn("Déconnexion : appareil", e); }
@@ -631,14 +692,20 @@ $("chips").onclick = e => {
 };
 
 /* ---------- Événements ---------- */
+// On charge la période affichée + la précédente et la suivante : le balayage affiche tout de suite du contenu
+function rangeFor(){
+  if (S.view === "week"){ const w = weekStart(S.sel); return [new Date(w.getFullYear(), w.getMonth(), w.getDate() - 7), new Date(w.getFullYear(), w.getMonth(), w.getDate() + 14)]; }
+  if (S.view === "year"){ const y = S.month.getFullYear(); return [new Date(y, 0, 1), new Date(y + 1, 0, 1)]; }
+  const y = S.month.getFullYear(), m = S.month.getMonth(); return [new Date(y, m - 1, -7), new Date(y, m + 2, 8)];
+}
+let loadSeq = 0;
 async function loadEvents(){
-  let a, b;
-  if (S.view === "week") { a = weekStart(S.sel); b = new Date(a.getFullYear(), a.getMonth(), a.getDate() + 7); }
-  else { const y = S.month.getFullYear(), m = S.month.getMonth(); a = new Date(y, m, -7); b = new Date(y, m + 1, 8); }
+  const seq = ++loadSeq, [a, b] = rangeFor();
   const {data, error} = await sb.from("events").select("*,event_attendees(user_id)")
     .eq("family_id", S.fam.id)
     .or(`and(starts_at.lt.${b.toISOString()},ends_at.gte.${a.toISOString()}),and(recurrence.neq.none,starts_at.lt.${b.toISOString()})`)
     .order("starts_at");
+  if (seq !== loadSeq) return;   // une réponse plus récente a pris le relais
   if (error) return alert(error.message);
   S.base = Object.fromEntries(data.map(e => [e.id, e]));
   S.events = expand(data, a, b); render();
@@ -682,7 +749,6 @@ function evRow(e){
   return `<div class="er" data-e="${e.id}"><span class="bar" style="background:${grad(cols(e), "to bottom")}"></span><div class="eb"><div class="et"><span class="tb">${t}</span>${icons}<span class="tt">${esc(e.title)}</span></div>${e.location ? `<div class="el">${IC.pin}${esc(e.location)}</div>` : ""}</div></div>`;
 }
 function renderHead(){
-  $("helloAv").innerHTML = S.members.map(m => `<span class="av" title="${esc(m.display_name)}" style="background:${m.color};color:${lumText(m.color)}">${esc(m.display_name.slice(0, 1).toUpperCase())}</span>`).join("");
   if (S.me) { $("topAv").style.background = S.me.color; $("topAv").style.color = lumText(S.me.color); $("topAv").textContent = S.me.display_name.slice(0, 1).toUpperCase(); }
   const st = weekStart(S.sel), todayK = ymd(new Date()), selK = ymd(S.sel);
   $("helloStrip").innerHTML = [0, 1, 2, 3, 4, 5, 6].map(i => {
@@ -697,8 +763,27 @@ $("helloStrip").onclick = e => {
 };
 function render(){
   renderHead();
-  const todayK = ymd(new Date()), selK = ymd(S.sel), wk = S.view === "week";
-  $("viewCard").classList.toggle("flat", wk); $("dayCard").hidden = wk;
+  const todayK = ymd(new Date()), selK = ymd(S.sel), wk = S.view === "week", yr = S.view === "year";
+  $("viewCard").classList.toggle("flat", wk || yr); $("dayCard").hidden = wk || yr; $("helloStrip").hidden = yr;
+  if (yr){
+    const Y = S.month.getFullYear(), evDays = new Set();
+    for (const e of S.events){
+      if (!visible(e)) continue;
+      let d = new Date(e.starts_at); d = new Date(d.getFullYear(), d.getMonth(), d.getDate()); const end = new Date(e.ends_at);
+      for (let i = 0; i < 400 && d <= end; i++){ evDays.add(ymd(d)); d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1); }
+    }
+    $("title").textContent = String(Y);
+    let h = "";
+    for (let mo = 0; mo < 12; mo++){
+      const first = new Date(Y, mo, 1), lead = (first.getDay() + 6) % 7, dim = new Date(Y, mo + 1, 0).getDate();
+      h += `<div class="ym" data-m="${Y}-${mo}"><div class="ymt">${cap(fmt(first, {month:"long"}))}</div><div class="yg">`
+        + ["L","M","M","J","V","S","D"].map(l => `<span class="yh">${l}</span>`).join("") + "<span></span>".repeat(lead);
+      for (let d = 1; d <= dim; d++){ const k = ymd(new Date(Y, mo, d)); h += `<span class="yd${k === todayK ? " today" : ""}${evDays.has(k) ? " ev" : ""}" data-d="${k}">${d}</span>`; }
+      h += "</div></div>";
+    }
+    $("cells").className = "year"; $("cells").innerHTML = h;
+    return;
+  }
   if (wk){
     const st = weekStart(S.sel), en = new Date(st.getFullYear(), st.getMonth(), st.getDate() + 6);
     $("title").textContent = fmt(st, {day:"numeric", month:"short"}) + " – " + fmt(en, {day:"numeric", month:"short", year:"numeric"});
@@ -729,6 +814,13 @@ function render(){
 }
 
 $("cells").onclick = e => {
+  if (S.view === "year"){   // un mois (ou un jour) touché ouvre la vue Mois correspondante
+    const mm = e.target.closest("[data-m]"); if (!mm) return;
+    const dd = e.target.closest(".yd"), [yy, mo] = mm.dataset.m.split("-").map(Number), now = new Date();
+    S.month = new Date(yy, mo, 1);
+    S.sel = dd ? new Date(dd.dataset.d + "T00:00") : new Date(yy, mo, now.getFullYear() === yy && now.getMonth() === mo ? now.getDate() : 1);
+    return setView("month");
+  }
   const ad = e.target.closest("[data-add]");
   if (ad) { S.sel = new Date(ad.dataset.add + "T00:00"); return openDlg(null); }
   const ev = e.target.closest("[data-e]");
@@ -739,25 +831,73 @@ $("cells").onclick = e => {
 };
 $("dayList").onclick = e => { const x = e.target.closest("[data-e]"); if (x) openDlg(S.base[x.dataset.e]); };
 $("addDay").onclick = () => openDlg(null);
-$("bAv").onclick = () => $("bProf").click();
+$("bAv").onclick = () => openProfile();
 $("bTheme").onclick = () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
 const weekStart = d => new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
 const go = n => {
   if (S.view === "week") { S.sel = new Date(S.sel.getFullYear(), S.sel.getMonth(), S.sel.getDate() + 7 * n); S.month = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); }
+  else if (S.view === "year") S.month = new Date(S.month.getFullYear() + n, S.month.getMonth(), 1);
   else S.month = new Date(S.month.getFullYear(), S.month.getMonth() + n, 1);
-  loadEvents();
+  render();       // affichage immédiat avec les données déjà chargées…
+  loadEvents();   // …puis mise à jour
 };
 $("prev").onclick = () => go(-1); $("next").onclick = () => go(1);
 $("today").onclick = () => { S.month = new Date(); S.sel = new Date(); loadEvents(); };
 function setView(v){
   S.view = v;
-  $("vMonth").classList.toggle("p", v === "month"); $("vWeek").classList.toggle("p", v === "week");
+  $("vMonth").classList.toggle("p", v === "month"); $("vWeek").classList.toggle("p", v === "week"); $("vYear").classList.toggle("p", v === "year");
   loadEvents();
 }
-$("vMonth").onclick = () => setView("month"); $("vWeek").onclick = () => setView("week");
+$("vMonth").onclick = () => setView("month"); $("vWeek").onclick = () => setView("week"); $("vYear").onclick = () => setView("year");
+
+/* ---------- Choisir une date en touchant le titre ---------- */
+const G = {y:0, m:0};
+function gRender(){
+  const v = S.view, now = new Date(), tk = ymd(now);
+  let h = "";
+  if (v === "week"){
+    const first = new Date(G.y, G.m, 1), start = new Date(G.y, G.m, 1 - ((first.getDay() + 6) % 7)), ws = ymd(weekStart(S.sel));
+    $("gTitle").textContent = cap(fmt(first, {month:"long", year:"numeric"}));
+    h = '<div class="gg">' + ["L","M","M","J","V","S","D"].map(l => `<span class="gh">${l}</span>`).join("");
+    for (let i = 0; i < 42; i++){
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i), k = ymd(d);
+      h += `<button type="button" class="gd${d.getMonth() !== G.m ? " out" : ""}${k === tk ? " today" : ""}${ymd(weekStart(d)) === ws ? " sel" : ""}" data-d="${k}">${d.getDate()}</button>`;
+    }
+    h += "</div>";
+  } else if (v === "month"){
+    $("gTitle").textContent = String(G.y);
+    h = '<div class="gg3">' + Array.from({length:12}, (_, i) => `<button type="button" class="gm${G.y === S.month.getFullYear() && i === S.month.getMonth() ? " sel" : ""}${G.y === now.getFullYear() && i === now.getMonth() ? " today" : ""}" data-m="${i}">${cap(fmt(new Date(G.y, i, 1), {month:"short"}))}</button>`).join("") + "</div>";
+  } else {
+    $("gTitle").textContent = `${G.y} – ${G.y + 11}`;
+    h = '<div class="gg3">' + Array.from({length:12}, (_, i) => { const y = G.y + i; return `<button type="button" class="gm${y === S.month.getFullYear() ? " sel" : ""}${y === now.getFullYear() ? " today" : ""}" data-y="${y}">${y}</button>`; }).join("") + "</div>";
+  }
+  $("gBody").innerHTML = h;
+}
+function gStep(n){
+  if (S.view === "week"){ const d = new Date(G.y, G.m + n, 1); G.y = d.getFullYear(); G.m = d.getMonth(); }
+  else if (S.view === "month") G.y += n; else G.y += 12 * n;
+  gRender();
+}
+$("title").onclick = () => {
+  const b = S.view === "week" ? S.sel : S.month;
+  G.y = S.view === "year" ? b.getFullYear() - 5 : b.getFullYear(); G.m = b.getMonth();
+  gRender(); $("gdlg").showModal();
+};
+$("gPrev").onclick = () => gStep(-1); $("gNext").onclick = () => gStep(1);
+$("gClose").onclick = () => $("gdlg").close();
+$("gToday").onclick = () => { $("gdlg").close(); $("today").click(); };
+$("gBody").onclick = e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const dim = (y, m) => new Date(y, m + 1, 0).getDate();
+  if (b.dataset.d){ S.sel = new Date(b.dataset.d + "T00:00"); S.month = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); }
+  else if (b.dataset.m){ const m = +b.dataset.m; S.month = new Date(G.y, m, 1); S.sel = new Date(G.y, m, Math.min(S.sel.getDate(), dim(G.y, m))); }
+  else if (b.dataset.y){ const y = +b.dataset.y, m = S.month.getMonth(); S.month = new Date(y, m, 1); S.sel = new Date(y, m, Math.min(S.sel.getDate(), dim(y, m))); }
+  else return;
+  $("gdlg").close(); render(); loadEvents();
+};
 
 /* ---------- Profil et code d’invitation ---------- */
-$("bProf").onclick = () => {
+const openProfile = () => {
   $("pName").value = S.me.display_name; $("pColor").value = S.me.color; $("pMsg").textContent = "";
   $("pAdmin").hidden = !["owner", "admin"].includes(S.me.role); $("pFam").value = S.fam.name;
   $("pCode").textContent = S.fam.invite_code;
@@ -861,9 +1001,9 @@ $("fDel").onclick = async () => {
   $("dlg").close(); loadEvents();
 };
 
-/* ---------- Signaler un problème ---------- */
+/* ---------- Aide et signalement ---------- */
 const APP_VERSION = "1.0";
-$("bReport").onclick = () => { $("pdlg").close(); $("rMsg").textContent = ""; $("rText").value = ""; $("rdlg").showModal(); };
+$("bHelp").onclick = () => { $("rMsg").textContent = ""; $("rText").value = ""; $("rdlg").showModal(); };
 $("rClose").onclick = () => $("rdlg").close();
 $("rSend").onclick = async () => {
   const msg = $("rText").value.trim();
@@ -924,6 +1064,42 @@ sb.auth.getSession().then(({data}) => {
   if (!data.session) { show("auth"); authMode(pendingCode() ? "signup" : "login"); }
   if (linkExpired) { show("auth"); authMode("forgot"); setMsg("forgotMsg", "Ce lien a expiré ou a déjà été utilisé. Redemande un lien."); }
 });
+/* ---------- Fenêtres (mobile) : glisser vers le bas ou toucher la poignée pour fermer ---------- */
+document.querySelectorAll("dialog").forEach(d => {
+  const sheet = () => matchMedia("(max-width: 600px)").matches;
+  let y0 = 0, x0 = 0, t0 = 0, on = false, ok = false;
+  // Toucher la poignée (la petite barre en haut) ferme la fenêtre
+  d.addEventListener("click", e => { if (sheet() && e.target === d && e.clientY - d.getBoundingClientRect().top < 44) d.close(); });
+  d.addEventListener("touchstart", e => {
+    const t = e.touches[0]; y0 = t.clientY; x0 = t.clientX; t0 = e.timeStamp; on = false;
+    ok = sheet() && e.touches.length === 1 && d.scrollTop === 0 && !e.target.closest("input, textarea, select");
+  }, {passive:true});
+  d.addEventListener("touchmove", e => {
+    if (!ok) return;
+    const t = e.touches[0], dy = t.clientY - y0, dx = t.clientX - x0;
+    if (!on){
+      if (Math.abs(dy) < 8 && Math.abs(dx) < 8) return;
+      if (dy < 0 || dy < Math.abs(dx) * 1.3) { ok = false; return; }   // vers le haut ou de côté : défilement normal
+      on = true;
+    }
+    e.preventDefault();
+    d.style.transition = "none"; d.style.transform = `translateY(${Math.max(dy, 0)}px)`;   // la fenêtre suit le doigt
+  }, {passive:false});
+  const end = e => {
+    if (!on) { ok = false; return; }
+    ok = on = false;
+    const dy = (e.changedTouches?.[0]?.clientY ?? y0) - y0, v = dy / Math.max(e.timeStamp - t0, 1);
+    if (dy > 110 || (dy > 40 && v > .6)) {
+      d.style.transition = "transform .18s ease-in"; d.style.transform = "translateY(100%)";
+      setTimeout(() => { d.close(); d.style.transition = d.style.transform = ""; }, 180);
+    } else {   // pas assez glissé : retour en place
+      d.style.transition = "transform .2s ease-out"; d.style.transform = "";
+      setTimeout(() => { d.style.transition = ""; }, 210);
+    }
+  };
+  d.addEventListener("touchend", end, {passive:true}); d.addEventListener("touchcancel", end, {passive:true});
+});
+
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>
