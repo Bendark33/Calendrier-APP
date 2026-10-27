@@ -96,9 +96,39 @@ label{font-size:13px;color:var(--mu)}
 .tabbar button.p{background:none;color:var(--ac)}
 .tabbar button.p .ind{background:var(--pc)}
 .tabbar .plus{width:40px;height:40px;margin:-3px 0;border-radius:13px;background:var(--ac);color:var(--pt);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px #00000033}
-@keyframes swl{from{transform:translateX(44px);opacity:.25}to{transform:none;opacity:1}}
-@keyframes swr{from{transform:translateX(-44px);opacity:.25}to{transform:none;opacity:1}}
-.sw-l{animation:swl .28s ease}.sw-r{animation:swr .28s ease}
+/* Balayage : le geste horizontal est géré par l'appli, le défilement vertical reste natif */
+#app{touch-action:pan-y pinch-zoom;overflow-x:clip}
+#helloStrip,#viewCard,#dayCard,#cells{will-change:transform}
+/* Types d'événements */
+.kinds{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+.kinds button{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;font-size:13px;background:var(--fill)}
+.kinds button.sel{background:var(--pc);color:var(--ac);box-shadow:inset 0 0 0 1.5px var(--ac);font-weight:600}
+.ki{display:flex;gap:2px;margin-top:1px;line-height:0}
+.csep{flex:none;width:1px;background:var(--bd);margin:4px 2px}
+.chip svg{flex:none}
+/* Titre cliquable + sélecteur de date */
+.navrow .ttl{background:none;padding:6px 4px 6px 0;color:var(--ac);font-size:16px;font-weight:600;display:inline-flex;align-items:center;text-align:left}
+.navrow .ttl::after{content:"";width:7px;height:7px;border:solid currentColor;border-width:0 2px 2px 0;transform:translateY(-2px) rotate(45deg);margin-left:8px}
+#gdlg .gg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:10px}
+#gdlg .gh{text-align:center;font-size:12px;font-weight:600;color:var(--mu);padding:4px 0}
+#gdlg .gd{padding:0;aspect-ratio:1;border-radius:10px;background:transparent;font-weight:500;font-size:14px}
+#gdlg .gd.out{color:var(--mu);opacity:.55}
+#gdlg .gd.sel{background:var(--pc);color:var(--ac);font-weight:700}
+#gdlg .gd.today,#gdlg .gm.today{box-shadow:inset 0 0 0 1.5px var(--ac)}
+#gdlg .gg3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+#gdlg .gm{padding:14px 0;border-radius:12px;font-weight:600}
+#gdlg .gm.sel{background:var(--ac);color:var(--pt)}
+/* Vue année */
+#cells.year{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:4px}
+@media(min-width:560px){#cells.year{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:800px){#cells.year{grid-template-columns:repeat(4,1fr)}}
+.ym{background:var(--card);border-radius:14px;padding:10px;box-shadow:0 1px 2px var(--sh);cursor:pointer}
+.ymt{font-size:14px;font-weight:700;color:var(--ac);margin-bottom:6px}
+.yg{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;text-align:center;font-size:11px}
+.yg span{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--tx)}
+.yg .yh{font-size:9px;font-weight:700;color:var(--mu)}
+.yg .yd.ev{background:var(--pc);color:var(--ac);font-weight:700}
+.yg .yd.today{background:var(--ac);color:var(--pt);font-weight:700}
 .dbg{position:fixed;inset:0;z-index:19;background:#0F172A80;opacity:0;pointer-events:none;transition:opacity .25s}
 .dbg.open{opacity:1;pointer-events:auto}
 .drawer{position:fixed;top:0;bottom:0;left:0;width:min(84vw,310px);z-index:20;background:var(--card);color:var(--tx);padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px));border-radius:0 16px 16px 0;box-shadow:8px 0 30px #00000040;display:flex;flex-direction:column;gap:10px;transform:translateX(-102%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s linear .28s;overflow:auto}
@@ -121,8 +151,15 @@ fieldset{border:0;padding:0;margin:0}
 .dt{display:grid;grid-template-columns:3fr 2fr;gap:8px}
 .who label{display:inline-flex;gap:4px;align-items:center;margin-right:10px;color:var(--tx)}
 @media (max-width:600px){
-dialog{width:100%;max-width:none;margin:auto 0 0;border-radius:24px 24px 0 0;max-height:92vh;overflow:auto;padding:12px 20px calc(20px + env(safe-area-inset-bottom,0px))}
+dialog{overscroll-behavior:contain;width:100%;max-width:none;margin:auto 0 0;border-radius:24px 24px 0 0;max-height:92vh;overflow:auto;padding:12px 20px calc(20px + env(safe-area-inset-bottom,0px))}
 dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;background:var(--bd);margin:0 auto 14px}}
+/* Œil mot de passe */
+#auth .pw{position:relative}
+#auth .pw input{padding-right:48px}
+#auth .pw input::-ms-reveal,#auth .pw input::-ms-clear{display:none}
+#auth .pw input::-webkit-credentials-auto-fill-button{visibility:hidden;pointer-events:none;position:absolute;right:0}
+#auth .pw .eye{position:absolute;right:4px;top:4px;bottom:10px;width:42px;padding:0;background:none;color:var(--mu);display:flex;align-items:center;justify-content:center;border-radius:10px}
+#auth .pw .eye:hover,#auth .pw .eye:focus-visible{color:var(--tx)}
 </style>
 </head>
 <body>
@@ -130,15 +167,33 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
 
 <section id="auth" class="card narrow" hidden>
   <div class="brand" style="margin-bottom:14px"><span class="logo">C</span><strong>Calendy</strong></div>
+  <p id="aInv" hidden style="background:var(--pc);color:var(--ac);padding:10px 12px;border-radius:12px;font-size:14px;font-weight:500;margin:0 0 12px">Tu as été invité(e) à rejoindre une famille sur Calendy. Crée ton compte (ou connecte-toi si tu en as déjà un) pour continuer.</p>
   <div id="loginBox">
     <h2 style="font-size:16px;margin:0 0 8px">Connexion</h2>
     <label>Email</label><input id="email" type="email" autocomplete="email">
     <label>Mot de passe</label><input id="pass" type="password" autocomplete="current-password">
+    <div style="text-align:right;margin-top:6px"><button id="toForgot" type="button" style="background:none;padding:4px 0;color:var(--ac);font-size:13px">Mot de passe oublié ?</button></div>
     <div class="msg" id="loginMsg"></div>
     <button class="p" id="bIn" style="width:100%">Se connecter</button>
     <div class="or"><span>ou</span></div>
     <button id="bGoogle" class="g"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16.9z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-2.9-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.100 0 24s.9 7.600 2.600 10.800l7.900-6.100z"/><path fill="#34A853" d="M24 48c6.500 0 11.900-2.100 15.900-5.800l-7.100-5.500c-2 1.400-4.600 2.200-8.800 2.200-6.300 0-11.600-4.100-13.500-9.800l-7.900 6.100C6.500 42.600 14.600 48 24 48z"/></svg>Continuer avec Google</button>
     <p style="margin:14px 0 0;text-align:center"><label>Pas encore de compte ?</label> <button id="toSignup">Créer un compte</button></p>
+  </div>
+  <div id="forgotBox" hidden>
+    <h2 style="font-size:16px;margin:0 0 8px">Mot de passe oublié</h2>
+    <p style="margin:0 0 8px;font-size:14px;color:var(--mu)">Entre ton adresse email : tu recevras un lien pour choisir un nouveau mot de passe.</p>
+    <label>Email</label><input id="fEmail" type="email" autocomplete="email">
+    <div class="msg" id="forgotMsg"></div>
+    <button class="p" id="bForgot" style="width:100%">Envoyer le lien</button>
+    <p style="margin:14px 0 0;text-align:center"><button id="fBack" type="button">Retour à la connexion</button></p>
+  </div>
+  <div id="resetBox" hidden>
+    <h2 style="font-size:16px;margin:0 0 8px">Nouveau mot de passe</h2>
+    <label>Nouveau mot de passe (6 caractères minimum)</label><input id="rPass" type="password" autocomplete="new-password">
+    <label>Confirmer le mot de passe</label><input id="rPass2" type="password" autocomplete="new-password">
+    <div class="msg" id="resetMsg"></div>
+    <button class="p" id="bReset" style="width:100%">Enregistrer</button>
+    <p style="margin:14px 0 0;text-align:center"><button id="rCancel" type="button">Annuler</button></p>
   </div>
   <div id="signupBox" hidden>
     <h2 style="font-size:16px;margin:0 0 8px">Créer un compte</h2>
@@ -159,12 +214,15 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
     <p id="oInv" hidden style="background:var(--pc);color:var(--ac);padding:10px 12px;border-radius:12px;font-size:14px;font-weight:500;margin:0 0 12px">Tu as reçu une invitation : choisis ton prénom et ta couleur, puis touche « Rejoindre ».</p>
     <label>Ton prénom</label><input id="oName" maxlength="40">
     <div class="row"><label>Ta couleur</label><input id="oColor" type="color" value="#3b82f6"></div>
+    <div id="oCreateBox">
     <hr style="border:0;border-top:1px solid var(--bd);margin:14px 0">
     <label>Créer une famille : nom</label><input id="oFam" maxlength="80" placeholder="Famille Dupont">
     <button class="p" id="bCreate">Créer</button>
     <hr style="border:0;border-top:1px solid var(--bd);margin:14px 0">
+    </div>
     <label>Ou rejoindre avec un code d’invitation</label><input id="oCode" placeholder="ex. a1b2c3d4">
     <button id="bJoin">Rejoindre</button>
+    <p style="margin:10px 0 0"><button id="oSkip" type="button" hidden style="background:none;padding:4px 0;color:var(--ac);font-size:13px">Pas d’invitation ? Créer ma propre famille</button></p>
     <div class="msg" id="oMsg"></div>
     <div class="row"><button id="oBack" hidden>Retour</button><button id="bOut1">Se déconnecter</button></div>
   </div>
@@ -176,11 +234,12 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
     <div class="brand"><span class="logo">C</span><strong>Calendy</strong></div>
     <span class="sp1"></span>
     <button id="bTheme" class="ib" aria-label="Changer de thème"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg></button>
+    <button id="bHelp" class="ib" aria-label="Aide et signalement"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.2-2.5 3.9M12 17.2h.01"/></svg></button>
     <button id="bAv" class="ib" aria-label="Mon profil"><span id="topAv" class="av sm"></span></button>
   </header>
   <div class="head">
-    <div class="row sp" style="flex-wrap:nowrap"><div><h1 id="hello"></h1><p id="helloSub"></p></div><div class="avs" id="helloAv"></div></div>
-    <div class="navrow"><strong id="title"></strong><span class="row" style="gap:0"><button class="ib" id="prev" aria-label="Période précédente"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><button class="ib acc" id="today" aria-label="Aujourd’hui"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/></svg></button><button class="ib" id="next" aria-label="Période suivante"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></span></div>
+    <div class="row sp" style="flex-wrap:nowrap"><div><h1 id="hello"></h1><p id="helloSub"></p></div></div>
+    <div class="navrow"><button id="title" class="ttl" aria-haspopup="dialog" aria-label="Choisir une date"></button><span class="row" style="gap:0"><button class="ib" id="prev" aria-label="Période précédente"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><button class="ib acc" id="today" aria-label="Aujourd’hui"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/></svg></button><button class="ib" id="next" aria-label="Période suivante"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></span></div>
     <div class="strip" id="helloStrip"></div>
     <div class="chips" id="chips"></div>
   </div>
@@ -195,8 +254,8 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
   <nav class="tabbar" aria-label="Navigation">
     <button id="vWeek"><span class="ind"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3M8 14h8"/></svg></span>Semaine</button>
     <button id="vMonth"><span class="ind"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3M8.5 14h.01M12 14h.01M15.5 14h.01M8.5 17h.01M12 17h.01"/></svg></span>Mois</button>
+    <button id="vYear"><span class="ind"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg></span>Année</button>
     <button id="add" aria-label="Ajouter un événement"><span class="ind"><span class="plus"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></span>Ajouter</button>
-    <button id="bProf"><span class="ind"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg></span>Profil</button>
   </nav>
   <div class="dbg" id="dbg"></div>
   <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Menu">
@@ -220,16 +279,18 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
 <dialog id="dlg">
   <fieldset id="fSet">
     <h1 id="dTitle">Événement</h1>
+    <label>Type</label>
+    <div id="fKind" class="kinds" role="radiogroup" aria-label="Type d’événement"></div>
     <label>Titre</label><input id="fTitle" maxlength="120">
     <label><input type="checkbox" id="fAll"> Toute la journée</label><br>
     <label><input type="checkbox" id="fImp"> ★ Important</label><br>
     <label><input type="checkbox" id="fConf"> 🔒 Confidentiel (visible seulement par moi)</label>
     <label style="display:block;margin-top:12px">Répétition</label>
-    <select id="fRep" style="width:100%;margin:4px 0 10px"><option value="none">Aucune</option><option value="weekly">Toutes les semaines</option><option value="monthly">Tous les mois</option></select>
+    <select id="fRep" style="width:100%;margin:4px 0 10px"><option value="none">Aucune</option><option value="weekly">Toutes les semaines</option><option value="monthly">Tous les mois</option><option value="yearly">Tous les ans</option></select>
     <div id="fUntilRow" hidden><label>Jusqu’au (facultatif)</label><input type="date" id="fUntil"></div>
     <p id="fSerie" hidden style="color:var(--mu);font-size:13px;margin:0 0 8px">Cet événement se répète : une modification s’applique à toute la série.</p>
-    <label>Début</label><div class="dt"><input type="date" id="fD1"><input type="time" id="fT1"></div>
-    <label>Fin</label><div class="dt"><input type="date" id="fD2"><input type="time" id="fT2"></div>
+    <label id="fStartL">Début</label><div class="dt"><input type="date" id="fD1"><input type="time" id="fT1"></div>
+    <label id="fEndL">Fin</label><div class="dt" id="fEndR"><input type="date" id="fD2"><input type="time" id="fT2"></div>
     <label>Lieu</label><input id="fLoc">
     <label>Description</label><textarea id="fDesc" rows="2"></textarea>
     <label>Qui est concerné</label>
@@ -265,8 +326,15 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
   <div class="row sp" style="margin-top:14px"><button id="iClose">Fermer</button></div>
 </dialog>
 
+<dialog id="gdlg" aria-label="Choisir une date">
+  <div class="row sp" style="flex-wrap:nowrap"><button class="ib" id="gPrev" aria-label="Précédent"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><strong id="gTitle" style="font-size:17px"></strong><button class="ib" id="gNext" aria-label="Suivant"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></div>
+  <div id="gBody"></div>
+  <div class="row sp" style="margin-top:14px"><button id="gToday">Aujourd’hui</button><button id="gClose">Fermer</button></div>
+</dialog>
+
 <dialog id="rdlg">
-  <h1>Signaler un problème</h1>
+  <h1>Aide et signalement</h1>
+  <p style="color:var(--mu);font-size:14px;margin:0 0 10px">Un problème, une question ou une idée pour améliorer Calendy ? Dis-nous tout ici.</p>
   <label>Type</label>
   <select id="rCat" style="width:100%;margin:4px 0 10px"><option value="bug">Un problème (bug)</option><option value="suggestion">Une idée ou suggestion</option><option value="autre">Autre</option></select>
   <label>Décris ce qui se passe</label>
@@ -289,7 +357,7 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
     <button id="pRenew">Renouveler le code d’invitation</button><br>
     <small style="color:var(--mu)">Après le renouvellement, l’ancien code ne fonctionne plus.</small>
   </div>
-  <div class="row" style="margin-top:12px"><button id="bNotif">Notifications…</button><button id="bReport">Signaler un problème</button></div>
+  <div class="row" style="margin-top:12px"><button id="bNotif">Notifications…</button></div>
   <div class="msg" id="pMsg"></div>
   <div class="row sp"><button id="pClose">Fermer</button><button class="p" id="pSave">Enregistrer</button></div>
   <hr style="border:0;border-top:1px solid var(--bd);margin:14px 0">
@@ -299,6 +367,10 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
 <script>
 const SUPABASE_URL = "https://oxctvckwjdrkqctjybfc.supabase.co";
 const SUPABASE_KEY = "sb_publishable_eUk7TWztGhed7aXSABHCsg_eCBjy1yb";
+// Lecture de l’URL avant createClient (qui nettoie le hash) : lien de reset valide ou expiré ?
+const _hp = new URLSearchParams(location.hash.slice(1));
+let recovering = _hp.get("type") === "recovery";
+const linkExpired = !!(_hp.get("error_code") || _hp.get("error"));
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const $ = id => document.getElementById(id);
@@ -306,7 +378,7 @@ const pad = n => String(n).padStart(2, "0");
 const ymd = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt = (d, o) => new Intl.DateTimeFormat("fr-FR", o).format(d);
-const S = {user:null, fam:null, me:null, members:[], events:[], month:new Date(), sel:new Date(), off:new Set(), edit:null, ch:null, base:{}, view:(innerWidth < 600 ? "week" : "month"), prefs:null, token:null};
+const S = {user:null, fam:null, me:null, members:[], events:[], month:new Date(), sel:new Date(), off:new Set(), offK:new Set(), edit:null, ch:null, base:{}, view:(innerWidth < 600 ? "week" : "month"), prefs:null, token:null};
 const isNative = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
 // Accès aux plugins natifs : sans bundler, Capacitor expose Capacitor.Plugins.<Nom>
 function plug(name){
@@ -314,6 +386,27 @@ function plug(name){
   if (C && C.Plugins && C.Plugins[name]) return C.Plugins[name];
   if (C && typeof C.registerPlugin === "function") return C.registerPlugin(name);
   return null;
+}
+/* ---------- Touche « retour » : ferme d'abord la fenêtre ou le menu ouvert ---------- */
+// Chaque fenêtre/menu ouvert ajoute une entrée à l'historique ; « retour » la retire et ferme l'élément du dessus.
+// Dans l'appli Android, Capacitor fait « retour » dans l'historique de la WebView, puis quitte l'appli s'il n'y en a plus.
+const ov = (() => {
+  const stack = [], todo = []; let waiting = 0;
+  const flush = () => { while (!waiting && todo.length) todo.shift()(); };   // on attend la fin d'un « retour » en cours avant d'enchaîner
+  addEventListener("popstate", () => {
+    if (waiting) { waiting--; flush(); return; }   // « retour » déclenché par nous (fermeture au bouton)
+    const r = stack.pop();                         // « retour » demandé par la personne : on ferme l'élément du dessus
+    if (r && r.isOpen()) r.close();
+  });
+  return {
+    open(el, isOpen, close){ todo.push(() => { if (!isOpen() || stack.some(r => r.el === el)) return; stack.push({el, isOpen, close}); history.pushState({ov:1}, ""); }); flush(); },
+    closed(el){ todo.push(() => { const i = stack.findIndex(r => r.el === el); if (i < 0) return; stack.splice(i, 1); waiting++; history.back(); }); flush(); }
+  };
+})();
+{
+  const showModal = HTMLDialogElement.prototype.showModal;
+  HTMLDialogElement.prototype.showModal = function(){ showModal.call(this); ov.open(this, () => this.open, () => slideClose(this)); };
+  document.querySelectorAll("dialog").forEach(d => d.addEventListener("close", () => ov.closed(d)));
 }
 // Lien d’invitation : /?code=XXXX -> on garde le code jusqu’à la connexion
 try { const c = new URLSearchParams(location.search).get("code"); if (c && /^[A-Za-z0-9]{4,16}$/.test(c)) { localStorage.setItem("pendingCode", c.toLowerCase()); history.replaceState(null, "", location.pathname); } } catch {}
@@ -329,7 +422,34 @@ const grad = (cs, dir) => { const c = cs.length > 1 ? cs : [cs[0], cs[0]], n = c
 const tint = cs => "linear-gradient(90deg," + (cs.length > 1 ? cs : [cs[0], cs[0]]).map(x => x + "40").join(",") + ")";
 
 /* ---------- Connexion ---------- */
-function authMode(m){ $("loginBox").hidden = m !== "login"; $("signupBox").hidden = m !== "signup"; $("loginMsg").textContent = $("signupMsg").textContent = ""; }
+function authMode(m){
+  ["login","signup","forgot","reset"].forEach(x => $(x + "Box").hidden = x !== m);
+  ["loginMsg","signupMsg","forgotMsg","resetMsg"].forEach(i => setMsg(i, ""));
+  document.querySelectorAll("#auth .pw input").forEach(i => i.hide && i.hide());
+  $("aInv").hidden = !(pendingCode() && (m === "login" || m === "signup"));
+  ["signup", "forgot"].forEach(x => { const box = $(x + "Box"); if (m === x) ov.open(box, () => !box.hidden, () => authMode("login")); else ov.closed(box); });
+}
+function pendingCode(){ try { return localStorage.getItem("pendingCode"); } catch { return null; } }
+function setMsg(id, t, ok){ const el = $(id); el.textContent = t; el.style.color = ok ? "#16a34a" : ""; }
+/* Œil : afficher / masquer le mot de passe (tous les champs de l’écran de connexion) */
+{
+  const svg = p => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
+  const EYE = svg('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>');
+  const EYE_OFF = svg('<path d="M17.9 17.9A10.4 10.4 0 0 1 12 19c-6.5 0-10-7-10-7a17.5 17.5 0 0 1 4.1-5.1M9.9 5.2A9.7 9.7 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-2.2 3.2M1 1l22 22M9.9 9.9a3 3 0 0 0 4.2 4.2"/>');
+  document.querySelectorAll('#auth input[type="password"]').forEach(inp => {
+    const w = document.createElement("div"); w.className = "pw";
+    inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
+    const b = document.createElement("button"); b.type = "button"; b.className = "eye";
+    const set = on => {
+      inp.type = on ? "text" : "password"; b.innerHTML = on ? EYE_OFF : EYE;
+      b.setAttribute("aria-label", on ? "Masquer le mot de passe" : "Afficher le mot de passe");
+      b.setAttribute("aria-pressed", String(on));
+    };
+    b.onclick = () => { set(inp.type === "password"); inp.focus(); };
+    inp.hide = () => set(false);
+    set(false); w.appendChild(b);
+  });
+}
 const googleSignIn = async () => {
   $("loginMsg").textContent = $("signupMsg").textContent = "";
   const showErr = m => { $((!$("signupBox").hidden) ? "signupMsg" : "loginMsg").textContent = /provider is not enabled|Unsupported provider/i.test(m) ? "La connexion Google n’est pas encore activée." : m; };
@@ -354,14 +474,56 @@ if (isNative) {
     try { const B = plug("Browser"); if (B && B.close) B.close(); } catch {}
     try {
       const u = new URL(url), code = u.searchParams.get("code"), h = new URLSearchParams(u.hash.slice(1));
+      if (h.get("type") === "recovery") recovering = true;
       if (code) { const r = await sb.auth.exchangeCodeForSession(code); if (r.error) alert(r.error.message); }
       else if (h.get("access_token")) await sb.auth.setSession({access_token:h.get("access_token"), refresh_token:h.get("refresh_token")});
+      else if (h.get("error_code")) { show("auth"); authMode("forgot"); setMsg("forgotMsg", "Ce lien a expiré ou a déjà été utilisé. Redemande un lien."); }
+      if (recovering && h.get("access_token")) showReset();
     } catch (e) { alert("Connexion Google impossible : " + ((e && e.message) || e)); }
   });
 }
 $("bGoogle").onclick = $("bGoogle2").onclick = googleSignIn;
 $("toSignup").onclick = () => authMode("signup");
 $("toLogin").onclick = () => authMode("login");
+/* ---------- Mot de passe oublié ---------- */
+// Web : on revient sur la même page ; appli Android : lien profond (déjà utilisé pour Google)
+const RESET_REDIRECT = isNative ? "com.bendark.calendy://auth" : location.origin + location.pathname;
+function showReset(){ show("auth"); authMode("reset"); }
+$("toForgot").onclick = () => { const e = $("email").value.trim(); authMode("forgot"); $("fEmail").value = e; };
+$("fBack").onclick = () => authMode("login");
+$("bForgot").onclick = async () => {
+  const email = $("fEmail").value.trim();
+  if (!email) return setMsg("forgotMsg", "Entre ton adresse email");
+  const b = $("bForgot"); b.disabled = true; setMsg("forgotMsg", "");
+  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: RESET_REDIRECT});
+  if (error) {
+    setMsg("forgotMsg", /rate|seconds|too many|limit/i.test(error.message) ? "Trop de demandes : patiente un peu avant de réessayer." : error.message);
+    b.disabled = false; return;
+  }
+  // Message volontairement neutre : on ne révèle pas si le compte existe
+  setMsg("forgotMsg", "Si un compte existe pour cette adresse, un lien vient d’être envoyé. Pense à vérifier tes spams.", true);
+  setTimeout(() => { b.disabled = false; }, 60000);
+};
+$("bReset").onclick = async () => {
+  const p = $("rPass").value;
+  if (p.length < 6) return setMsg("resetMsg", "Le mot de passe doit faire au moins 6 caractères");
+  if (p !== $("rPass2").value) return setMsg("resetMsg", "Les deux mots de passe ne sont pas identiques");
+  const b = $("bReset"); b.disabled = true;
+  const email = S.user?.email || "";
+  const {error} = await sb.auth.updateUser({password: p});
+  if (error) { b.disabled = false; return setMsg("resetMsg", /different|same/i.test(error.message) ? "Le nouveau mot de passe doit être différent de l’ancien." : error.message); }
+  // On ne connecte pas automatiquement : on déconnecte et on renvoie à l'écran de connexion,
+  // pour que la personne vérifie son nouveau mot de passe en le saisissant.
+  recovering = false;
+  try { history.replaceState(null, "", location.pathname); } catch {}
+  try { await Promise.race([sb.auth.signOut({scope:"local"}), new Promise(r => setTimeout(r, 3000))]); } catch {}
+  try { Object.keys(localStorage).filter(k => k.startsWith("sb-")).forEach(k => localStorage.removeItem(k)); } catch {}
+  b.disabled = false; $("rPass").value = $("rPass2").value = "";
+  show("auth"); authMode("login");
+  $("email").value = email; $("pass").value = "";
+  setMsg("loginMsg", "Mot de passe modifié. Connecte-toi avec ton nouveau mot de passe.", true);
+};
+$("rCancel").onclick = () => { recovering = false; logout(); };
 $("bIn").onclick = async () => {
   $("loginMsg").textContent = "";
   const {error} = await sb.auth.signInWithPassword({email:$("email").value.trim(), password:$("pass").value});
@@ -373,22 +535,26 @@ $("bUp").onclick = async () => {
   if (!email) return $("signupMsg").textContent = "L’email est requis";
   if (password.length < 6) return $("signupMsg").textContent = "Le mot de passe doit faire au moins 6 caractères";
   if (password !== $("suPass2").value) return $("signupMsg").textContent = "Les deux mots de passe ne sont pas identiques";
-  const r = await sb.auth.signUp({email, password});
+  const pend = pendingCode();
+  // Si le mail de confirmation s’ouvre dans un autre navigateur, le code d’invitation voyage dans le lien
+  const r = await sb.auth.signUp({email, password, options: pend ? {emailRedirectTo: SITE_URL + "/?code=" + pend} : undefined});
   if (r.error) return $("signupMsg").textContent = r.error.message;
   if (!r.data.session) { authMode("login"); $("email").value = email; $("loginMsg").textContent = "Compte créé. Confirme ton email, puis connecte-toi."; }
 };
 function openDrawer(){
   $("bCode").textContent = "Code : " + S.fam.invite_code;
   $("drawer").classList.add("open"); $("dbg").classList.add("open"); $("drawer").setAttribute("aria-hidden", "false");
+  ov.open($("drawer"), () => $("drawer").classList.contains("open"), closeDrawer);
 }
 function closeDrawer(){
   $("drawer").classList.remove("open"); $("dbg").classList.remove("open"); $("drawer").setAttribute("aria-hidden", "true");
+  ov.closed($("drawer"));
 }
 $("bMenu").onclick = openDrawer; $("dbg").onclick = closeDrawer; $("dClose").onclick = closeDrawer;
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
 $("drawer").addEventListener("click", e => { if (e.target.closest("#bNewFam, #bOut2")) closeDrawer(); });
 /* ---------- Partager la famille ---------- */
-const SITE_URL = "https://calendrier-app.benjamin33370.workers.dev";
+const SITE_URL = "https://calendy.benweb.ovh";
 function inviteLink(){ return SITE_URL + "/?code=" + S.fam.invite_code; }
 function inviteText(){
   return `Salut !\n\nJe t’invite à rejoindre notre famille « ${S.fam.name} » sur Calendy.\n\nOuvre ce lien, crée ton compte (ou connecte-toi) et choisis ton prénom : tu rejoindras la famille automatiquement.\n${inviteLink()}\n\nSi le lien ne fonctionne pas, ouvre ${SITE_URL} et saisis le code : ${S.fam.invite_code}\n\nÀ très vite !\n${S.me.display_name}`;
@@ -429,19 +595,87 @@ $("bDelFam").onclick = async () => {
   try { localStorage.removeItem("famId"); } catch {}
   S.off = new Set(); boot();
 };
-/* ---------- Balayage : période suivante ou précédente ---------- */
-let tx = 0, ty = 0, tOk = false;
+/* ---------- Balayage : les pages se suivent (précédente | courante | suivante) ---------- */
+// Pendant le geste, on fabrique la page précédente et la suivante (copies du rendu) placées de part et d'autre
+// de la page courante : tout glisse ensemble, sans vide. À la fin, on remplace le vrai contenu par le nouveau.
+let tx = 0, ty = 0, tt = 0, tOk = false, dragging = false, swBusy = false, sw = null;
+const swTargets = () => S.view === "week" ? [$("helloStrip"), $("cells")] : S.view === "year" ? [$("cells")] : [$("viewCard")];
+function swBegin(){
+  const els = swTargets(), keep = {m: S.month, s: S.sel};
+  const make = n => { stepState(n); render(); const c = els.map(el => el.cloneNode(true)); S.month = keep.m; S.sel = keep.s; return c; };
+  let prev = null, next = null;
+  try { prev = make(-1); next = make(1); } catch (e) { S.month = keep.m; S.sel = keep.s; prev = next = null; }
+  render();   // remet le vrai contenu (et le titre)
+  sw = els.map((el, i) => {
+    const par = el.parentNode, made = getComputedStyle(par).position === "static";
+    if (made) par.style.position = "relative";
+    const ghost = c => {
+      if (!c) return null;
+      c.setAttribute("aria-hidden", "true"); c.inert = true; c.dataset.sw = "1";
+      Object.assign(c.style, {position:"absolute", left:el.offsetLeft + "px", top:el.offsetTop + "px", width:el.offsetWidth + "px", margin:"0", pointerEvents:"none"});
+      par.appendChild(c); return c;
+    };
+    return {el, par, made, p: ghost(prev && prev[i]), n: ghost(next && next[i])};
+  });
+}
+function swSet(dx, anim){
+  if (!sw) return;
+  const W = innerWidth;
+  sw.forEach(o => [[o.el, 0], [o.p, -W], [o.n, W]].forEach(([el, off]) => {
+    if (!el) return;
+    el.style.transition = anim || "none"; el.style.transform = `translate3d(${dx + off}px,0,0)`;
+  }));
+}
+function swEnd(dir){   // dir : 1 = période suivante, -1 = précédente, 0 = on reste
+  if (sw) sw.forEach(o => { if (o.p) o.p.remove(); if (o.n) o.n.remove(); o.el.style.transition = o.el.style.transform = ""; if (o.made) o.par.style.position = ""; });
+  sw = null;
+  if (dir) go(dir);
+}
+// Le geste est écouté sur l'élément touché lui-même : si le rendu le remplace en cours de route,
+// le navigateur continue d'envoyer la suite du geste à cet élément (et non au document).
+let swTarget = null;
+function swDetach(){
+  if (!swTarget) return;
+  swTarget.removeEventListener("touchmove", swMove); swTarget.removeEventListener("touchend", swUp); swTarget.removeEventListener("touchcancel", swCancel);
+  swTarget = null;
+}
+function swMove(e){
+  if (!tOk) return;
+  const t = e.touches[0], dx = t.clientX - tx, dy = t.clientY - ty;
+  if (!dragging){
+    if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+    if (Math.abs(dx) < Math.abs(dy) * 1.3) { tOk = false; return; }   // geste vertical : on laisse défiler
+    dragging = true; swBegin();
+  }
+  swSet(dx);   // les pages suivent le doigt
+}
+function swUp(e){
+  swDetach();
+  if (!tOk || !dragging) { tOk = false; return; }
+  tOk = dragging = false;
+  const dx = e.changedTouches[0].clientX - tx, W = innerWidth, v = Math.abs(dx) / Math.max(e.timeStamp - tt, 1);
+  const dir = (Math.abs(dx) >= W * .25 || (Math.abs(dx) > 40 && v > .5)) ? (dx < 0 ? 1 : -1) : 0;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return swEnd(dir);
+  const target = dir ? -dir * W : 0, ms = Math.round(Math.min(Math.max(Math.abs(target - dx) / W * 320, 140), 300));
+  swBusy = true;
+  swSet(target, `transform ${ms}ms cubic-bezier(.2,.8,.2,1)`);   // la page voisine finit de glisser jusqu'à sa place
+  setTimeout(() => { swEnd(dir); swBusy = false; }, ms + 20);
+}
+function swCancel(){
+  swDetach();
+  if (!dragging) { tOk = false; return; }
+  dragging = tOk = false; swBusy = true; swSet(0, "transform .2s ease-out");
+  setTimeout(() => { swEnd(0); swBusy = false; }, 220);
+}
 document.addEventListener("touchstart", e => {
-  const t = e.touches[0]; tx = t.clientX; ty = t.clientY;
-  tOk = e.touches.length === 1 && !$("app").hidden && !document.querySelector("dialog[open]") && !$("drawer").classList.contains("open")
+  swDetach();
+  const t = e.touches[0]; tx = t.clientX; ty = t.clientY; tt = e.timeStamp; dragging = false;
+  tOk = !swBusy && e.touches.length === 1 && !$("app").hidden && !document.querySelector("dialog[open]") && !$("drawer").classList.contains("open")
     && !e.target.closest(".chips, input, select, textarea, .tabbar") && tx > 24 && tx < innerWidth - 24;
-}, {passive:true});
-document.addEventListener("touchend", e => {
-  if (!tOk) return; tOk = false;
-  const t = e.changedTouches[0], dx = t.clientX - tx, dy = t.clientY - ty;
-  if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-  const v = $("viewCard"); v.classList.remove("sw-l", "sw-r"); void v.offsetWidth; v.classList.add(dx < 0 ? "sw-l" : "sw-r");
-  go(dx < 0 ? 1 : -1);
+  if (tOk){
+    swTarget = e.target;
+    swTarget.addEventListener("touchmove", swMove, {passive:true}); swTarget.addEventListener("touchend", swUp, {passive:true}); swTarget.addEventListener("touchcancel", swCancel, {passive:true});
+  }
 }, {passive:true});
 async function logout(){
   const wait = (p, ms) => Promise.race([p, new Promise(r => setTimeout(r, ms))]);
@@ -456,9 +690,10 @@ $("bOut1").onclick = $("bOut2").onclick = logout;
 let lastUid;
 sb.auth.onAuthStateChange((_e, s) => {
   const u = s?.user || null;
+  if (_e === "PASSWORD_RECOVERY") { recovering = true; S.user = u; lastUid = u?.id || null; setTimeout(showReset, 0); return; }
   if ((u?.id || null) === lastUid) return;
   lastUid = u?.id || null; S.user = u;
-  setTimeout(() => boot(), 0);
+  setTimeout(() => recovering ? showReset() : boot(), 0);
 });
 
 /* ---------- Famille ---------- */
@@ -491,7 +726,7 @@ async function boot(fid){
     .subscribe();
   if (pend) joinFlow(pend);
 }
-function inviteMode(on){ $("oInv").hidden = !on; $("bJoin").classList.toggle("p", on); $("bCreate").classList.toggle("p", !on); }
+function inviteMode(on){ $("oCreateBox").hidden = on; $("oSkip").hidden = !(on && !(S.all || []).length); $("oInv").hidden = !on; $("bJoin").classList.toggle("p", on); $("bCreate").classList.toggle("p", !on); }
 function joinFlow(code){
   $("oMsg").textContent = ""; $("oName").value = S.me.display_name; $("oColor").value = S.me.color;
   $("oCode").value = code; inviteMode(true); $("oBack").hidden = false; show("onboard");
@@ -511,6 +746,7 @@ $("bNewFam").onclick = () => {
   $("oMsg").textContent = ""; $("oName").value = S.me.display_name; $("oColor").value = S.me.color;
   $("oBack").hidden = false; inviteMode(false); show("onboard");
 };
+$("oSkip").onclick = () => { try { localStorage.removeItem("pendingCode"); } catch {} boot(); };
 $("oBack").onclick = () => { try { localStorage.removeItem("pendingCode"); } catch {} boot(S.fam.id); };
 $("bCode").onclick = () => navigator.clipboard?.writeText(S.fam.invite_code).then(() => $("bCode").textContent = "Code copié");
 
@@ -529,23 +765,32 @@ async function loadMembers(){
   const {data} = await sb.from("family_members").select("user_id,display_name,color,role").eq("family_id", S.fam.id);
   S.members = data || [];
   $("chips").innerHTML = S.members.map(m =>
-    `<button class="chip${S.off.has(m.user_id) ? " off" : ""}" data-u="${m.user_id}"><i style="background:${m.color}"></i>${esc(m.display_name)}</button>`).join("");
+    `<button class="chip${S.off.has(m.user_id) ? " off" : ""}" data-u="${m.user_id}"><i style="background:${m.color}"></i>${esc(m.display_name)}</button>`).join("")
+    + `<span class="csep"></span>` + KIND_KEYS.map(k => `<button class="chip${S.offK.has(k) ? " off" : ""}" data-k="${k}">${kIco(k, 14)}${KINDS[k].label}</button>`).join("");
 }
 $("chips").onclick = e => {
+  const kb = e.target.closest("[data-k]");
+  if (kb){ S.offK.has(kb.dataset.k) ? S.offK.delete(kb.dataset.k) : S.offK.add(kb.dataset.k); kb.classList.toggle("off"); return render(); }
   const b = e.target.closest("[data-u]"); if (!b) return;
   S.off.has(b.dataset.u) ? S.off.delete(b.dataset.u) : S.off.add(b.dataset.u);
   b.classList.toggle("off"); render();
 };
 
 /* ---------- Événements ---------- */
+// On charge la période affichée + la précédente et la suivante : le balayage affiche tout de suite du contenu
+function rangeFor(){
+  if (S.view === "week"){ const w = weekStart(S.sel); return [new Date(w.getFullYear(), w.getMonth(), w.getDate() - 7), new Date(w.getFullYear(), w.getMonth(), w.getDate() + 14)]; }
+  if (S.view === "year"){ const y = S.month.getFullYear(); return [new Date(y, 0, 1), new Date(y + 1, 0, 1)]; }
+  const y = S.month.getFullYear(), m = S.month.getMonth(); return [new Date(y, m - 1, -7), new Date(y, m + 2, 8)];
+}
+let loadSeq = 0;
 async function loadEvents(){
-  let a, b;
-  if (S.view === "week") { a = weekStart(S.sel); b = new Date(a.getFullYear(), a.getMonth(), a.getDate() + 7); }
-  else { const y = S.month.getFullYear(), m = S.month.getMonth(); a = new Date(y, m, -7); b = new Date(y, m + 1, 8); }
+  const seq = ++loadSeq, [a, b] = rangeFor();
   const {data, error} = await sb.from("events").select("*,event_attendees(user_id)")
     .eq("family_id", S.fam.id)
     .or(`and(starts_at.lt.${b.toISOString()},ends_at.gte.${a.toISOString()}),and(recurrence.neq.none,starts_at.lt.${b.toISOString()})`)
     .order("starts_at");
+  if (seq !== loadSeq) return;   // une réponse plus récente a pris le relais
   if (error) return alert(error.message);
   S.base = Object.fromEntries(data.map(e => [e.id, e]));
   S.events = expand(data, a, b); render();
@@ -553,6 +798,10 @@ async function loadEvents(){
 // Répétitions : on calcule les occurrences visibles (heure locale de l’appareil)
 function addPeriod(d, rec, n){
   if (rec === "weekly") return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7 * n, d.getHours(), d.getMinutes(), d.getSeconds());
+  if (rec === "yearly"){   // 29 février -> 28 février les années non bissextiles (comme côté serveur)
+    const y = d.getFullYear() + n, dim = new Date(y, d.getMonth() + 1, 0).getDate();
+    return new Date(y, d.getMonth(), Math.min(d.getDate(), dim), d.getHours(), d.getMinutes(), d.getSeconds());
+  }
   const m = d.getMonth() + n, dim = new Date(d.getFullYear(), m + 1, 0).getDate();
   return new Date(d.getFullYear(), m, Math.min(d.getDate(), dim), d.getHours(), d.getMinutes(), d.getSeconds());
 }
@@ -561,7 +810,7 @@ function expand(list, a, b){
   for (const e of list){
     if (!e.recurrence || e.recurrence === "none") { out.push(e); continue; }
     const st = new Date(e.starts_at), dur = new Date(e.ends_at) - st;
-    const step = e.recurrence === "weekly" ? 7 * 864e5 : 31 * 864e5;
+    const step = e.recurrence === "weekly" ? 7 * 864e5 : e.recurrence === "yearly" ? 365 * 864e5 : 31 * 864e5;
     for (let n = Math.max(0, Math.floor((a - st) / step) - 1), i = 0; i < 70; n++, i++){
       const os = addPeriod(st, e.recurrence, n);
       if (os >= b) break;
@@ -577,7 +826,21 @@ const IC = {
   star: '<svg width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9 6.8 19.7l1-5.9L3.5 9.7l5.9-.8z"/></svg>', lock: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ac)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>', repeat: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3l3 3-3 3M4 11V9.5A3.5 3.5 0 0 1 7.5 6H20M7 21l-3-3 3-3M20 13v1.5a3.5 3.5 0 0 1-3.5 3.5H4"/></svg>', pin: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.7-6.5-11A6.5 6.5 0 0 1 18.5 10c0 5.300-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>',
   sun: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>', moon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg>', add: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'
 };
-const visible = e => [e.created_by, ...e.event_attendees.map(a => a.user_id)].some(i => !S.off.has(i));
+// Types d'événements : icônes dessinées (aucune pour un événement simple)
+const KINDS = {
+  event:       {label:"Événement"},
+  birthday:    {label:"Anniversaire",      p:'<path d="M4 20h16M5 20v-6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6"/><path d="M5 16.2c1.2 1 2.3 1 3.5 0s2.3-1 3.5 0 2.3 1 3.5 0 2.3-1 3.5 0"/><path d="M12 12V9M12 4.5c.7.8 1 1.3 1 1.8a1 1 0 0 1-2 0c0-.5.3-1 1-1.8z"/>'},
+  medical:     {label:"Rendez-vous médical", p:'<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/>'},
+  school_work: {label:"École / Travail",   p:'<rect x="3.5" y="8" width="17" height="11.5" rx="2.5"/><path d="M9 8V6.5A1.5 1.5 0 0 1 10.5 5h3A1.5 1.5 0 0 1 15 6.5V8M3.5 13h17"/>'},
+  outing:      {label:"Sortie / Loisirs",  p:'<path d="M12 3c3 0 5.2 2.4 5.2 5.4 0 3.4-2.5 6-5.2 7.6-2.7-1.6-5.2-4.2-5.2-7.6C6.8 5.4 9 3 12 3z"/><path d="M12 16v5"/>'},
+  travel:      {label:"Voyage / Vacances", p:'<path d="M22 3L2 10.5l7.5 3L12.5 21 22 3zM9.5 13.5L22 3"/>'},
+  task:        {label:"Tâche / Rappel",    p:'<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8 5.7-5.8"/>'}
+};
+const KIND_KEYS = Object.keys(KINDS);
+const kIco = (k, sz = 14) => KINDS[k]?.p ? `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;color:var(--ac)">${KINDS[k].p}</svg>` : "";
+$("fKind").innerHTML = KIND_KEYS.map(k => `<button type="button" role="radio" data-k="${k}">${kIco(k, 16)}${KINDS[k].label}</button>`).join("");
+$("fKind").onclick = e => { const b = e.target.closest("[data-k]"); if (b) setKind(b.dataset.k, true); };
+const visible = e => !S.offK.has(e.kind || "event") && [e.created_by, ...e.event_attendees.map(a => a.user_id)].some(i => !S.off.has(i));
 const onDay = k => S.events.filter(e => visible(e) && ymd(new Date(e.starts_at)) <= k && k <= ymd(new Date(e.ends_at)));
 const lumText = c => { const n = parseInt(c.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 128 ? "#2A1A00" : "#FFFFFF"; };
 const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
@@ -585,11 +848,10 @@ const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
 // Ligne d'événement (semaine et détail du jour) : barre de couleurs, heure, icônes, titre, lieu
 function evRow(e){
   const t = e.all_day ? "Journée" : fmt(new Date(e.starts_at), {hour:"2-digit", minute:"2-digit"});
-  const icons = (e.important ? IC.star : "") + (e.confidential ? IC.lock : "") + (e.recurrence && e.recurrence !== "none" ? IC.repeat : "");
+  const icons = kIco(e.kind, 14) + (e.important ? IC.star : "") + (e.confidential ? IC.lock : "") + (e.recurrence && e.recurrence !== "none" ? IC.repeat : "");
   return `<div class="er" data-e="${e.id}"><span class="bar" style="background:${grad(cols(e), "to bottom")}"></span><div class="eb"><div class="et"><span class="tb">${t}</span>${icons}<span class="tt">${esc(e.title)}</span></div>${e.location ? `<div class="el">${IC.pin}${esc(e.location)}</div>` : ""}</div></div>`;
 }
 function renderHead(){
-  $("helloAv").innerHTML = S.members.map(m => `<span class="av" title="${esc(m.display_name)}" style="background:${m.color};color:${lumText(m.color)}">${esc(m.display_name.slice(0, 1).toUpperCase())}</span>`).join("");
   if (S.me) { $("topAv").style.background = S.me.color; $("topAv").style.color = lumText(S.me.color); $("topAv").textContent = S.me.display_name.slice(0, 1).toUpperCase(); }
   const st = weekStart(S.sel), todayK = ymd(new Date()), selK = ymd(S.sel);
   $("helloStrip").innerHTML = [0, 1, 2, 3, 4, 5, 6].map(i => {
@@ -604,8 +866,27 @@ $("helloStrip").onclick = e => {
 };
 function render(){
   renderHead();
-  const todayK = ymd(new Date()), selK = ymd(S.sel), wk = S.view === "week";
-  $("viewCard").classList.toggle("flat", wk); $("dayCard").hidden = wk;
+  const todayK = ymd(new Date()), selK = ymd(S.sel), wk = S.view === "week", yr = S.view === "year";
+  $("viewCard").classList.toggle("flat", wk || yr); $("dayCard").hidden = wk || yr; $("helloStrip").hidden = yr;
+  if (yr){
+    const Y = S.month.getFullYear(), evDays = new Set();
+    for (const e of S.events){
+      if (!visible(e)) continue;
+      let d = new Date(e.starts_at); d = new Date(d.getFullYear(), d.getMonth(), d.getDate()); const end = new Date(e.ends_at);
+      for (let i = 0; i < 400 && d <= end; i++){ evDays.add(ymd(d)); d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1); }
+    }
+    $("title").textContent = String(Y);
+    let h = "";
+    for (let mo = 0; mo < 12; mo++){
+      const first = new Date(Y, mo, 1), lead = (first.getDay() + 6) % 7, dim = new Date(Y, mo + 1, 0).getDate();
+      h += `<div class="ym" data-m="${Y}-${mo}"><div class="ymt">${cap(fmt(first, {month:"long"}))}</div><div class="yg">`
+        + ["L","M","M","J","V","S","D"].map(l => `<span class="yh">${l}</span>`).join("") + "<span></span>".repeat(lead);
+      for (let d = 1; d <= dim; d++){ const k = ymd(new Date(Y, mo, d)); h += `<span class="yd${k === todayK ? " today" : ""}${evDays.has(k) ? " ev" : ""}" data-d="${k}">${d}</span>`; }
+      h += "</div></div>";
+    }
+    $("cells").className = "year"; $("cells").innerHTML = h;
+    return;
+  }
   if (wk){
     const st = weekStart(S.sel), en = new Date(st.getFullYear(), st.getMonth(), st.getDate() + 6);
     $("title").textContent = fmt(st, {day:"numeric", month:"short"}) + " – " + fmt(en, {day:"numeric", month:"short", year:"numeric"});
@@ -623,8 +904,9 @@ function render(){
   const start = new Date(y, m, 1 - ((new Date(y, m, 1).getDay() + 6) % 7));
   let h = "";
   for (let i = 0; i < 42; i++){
-    const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i), k = ymd(d), ev = onDay(k);
+    const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i), k = ymd(d), ev = onDay(k), ks = KIND_KEYS.filter(x => x !== "event" && ev.some(e => (e.kind || "event") === x)).slice(0, 2);
     h += `<div class="cell${d.getMonth() !== m ? " out" : ""}${k === todayK ? " today" : ""}${k === selK ? " sel" : ""}" data-d="${k}"><b>${d.getDate()}</b>`
+      + (ks.length ? `<span class="ki">${ks.map(x => kIco(x, 12)).join("")}</span>` : "")
       + (ev.length ? `<div class="dots">${ev.slice(0, 3).map(e => `<i style="background:${col(e.created_by)}"></i>`).join("")}</div>` : "")
       + (ev.length > 3 ? `<small>+${ev.length - 3}</small>` : "") + "</div>";
   }
@@ -636,6 +918,13 @@ function render(){
 }
 
 $("cells").onclick = e => {
+  if (S.view === "year"){   // un mois (ou un jour) touché ouvre la vue Mois correspondante
+    const mm = e.target.closest("[data-m]"); if (!mm) return;
+    const dd = e.target.closest(".yd"), [yy, mo] = mm.dataset.m.split("-").map(Number), now = new Date();
+    S.month = new Date(yy, mo, 1);
+    S.sel = dd ? new Date(dd.dataset.d + "T00:00") : new Date(yy, mo, now.getFullYear() === yy && now.getMonth() === mo ? now.getDate() : 1);
+    return setView("month");
+  }
   const ad = e.target.closest("[data-add]");
   if (ad) { S.sel = new Date(ad.dataset.add + "T00:00"); return openDlg(null); }
   const ev = e.target.closest("[data-e]");
@@ -646,25 +935,76 @@ $("cells").onclick = e => {
 };
 $("dayList").onclick = e => { const x = e.target.closest("[data-e]"); if (x) openDlg(S.base[x.dataset.e]); };
 $("addDay").onclick = () => openDlg(null);
-$("bAv").onclick = () => $("bProf").click();
+$("bAv").onclick = () => openProfile();
 $("bTheme").onclick = () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
 const weekStart = d => new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
-const go = n => {
+function stepState(n){
   if (S.view === "week") { S.sel = new Date(S.sel.getFullYear(), S.sel.getMonth(), S.sel.getDate() + 7 * n); S.month = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); }
+  else if (S.view === "year") S.month = new Date(S.month.getFullYear() + n, S.month.getMonth(), 1);
   else S.month = new Date(S.month.getFullYear(), S.month.getMonth() + n, 1);
-  loadEvents();
+}
+const go = n => {
+  stepState(n);
+  render();       // affichage immédiat avec les données déjà chargées…
+  loadEvents();   // …puis mise à jour
 };
 $("prev").onclick = () => go(-1); $("next").onclick = () => go(1);
 $("today").onclick = () => { S.month = new Date(); S.sel = new Date(); loadEvents(); };
 function setView(v){
   S.view = v;
-  $("vMonth").classList.toggle("p", v === "month"); $("vWeek").classList.toggle("p", v === "week");
+  $("vMonth").classList.toggle("p", v === "month"); $("vWeek").classList.toggle("p", v === "week"); $("vYear").classList.toggle("p", v === "year");
   loadEvents();
 }
-$("vMonth").onclick = () => setView("month"); $("vWeek").onclick = () => setView("week");
+$("vMonth").onclick = () => setView("month"); $("vWeek").onclick = () => setView("week"); $("vYear").onclick = () => setView("year");
+
+/* ---------- Choisir une date en touchant le titre ---------- */
+const G = {y:0, m:0};
+function gRender(){
+  const v = S.view, now = new Date(), tk = ymd(now);
+  let h = "";
+  if (v === "week"){
+    const first = new Date(G.y, G.m, 1), start = new Date(G.y, G.m, 1 - ((first.getDay() + 6) % 7)), ws = ymd(weekStart(S.sel));
+    $("gTitle").textContent = cap(fmt(first, {month:"long", year:"numeric"}));
+    h = '<div class="gg">' + ["L","M","M","J","V","S","D"].map(l => `<span class="gh">${l}</span>`).join("");
+    for (let i = 0; i < 42; i++){
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i), k = ymd(d);
+      h += `<button type="button" class="gd${d.getMonth() !== G.m ? " out" : ""}${k === tk ? " today" : ""}${ymd(weekStart(d)) === ws ? " sel" : ""}" data-d="${k}">${d.getDate()}</button>`;
+    }
+    h += "</div>";
+  } else if (v === "month"){
+    $("gTitle").textContent = String(G.y);
+    h = '<div class="gg3">' + Array.from({length:12}, (_, i) => `<button type="button" class="gm${G.y === S.month.getFullYear() && i === S.month.getMonth() ? " sel" : ""}${G.y === now.getFullYear() && i === now.getMonth() ? " today" : ""}" data-m="${i}">${cap(fmt(new Date(G.y, i, 1), {month:"short"}))}</button>`).join("") + "</div>";
+  } else {
+    $("gTitle").textContent = `${G.y} – ${G.y + 11}`;
+    h = '<div class="gg3">' + Array.from({length:12}, (_, i) => { const y = G.y + i; return `<button type="button" class="gm${y === S.month.getFullYear() ? " sel" : ""}${y === now.getFullYear() ? " today" : ""}" data-y="${y}">${y}</button>`; }).join("") + "</div>";
+  }
+  $("gBody").innerHTML = h;
+}
+function gStep(n){
+  if (S.view === "week"){ const d = new Date(G.y, G.m + n, 1); G.y = d.getFullYear(); G.m = d.getMonth(); }
+  else if (S.view === "month") G.y += n; else G.y += 12 * n;
+  gRender();
+}
+$("title").onclick = () => {
+  const b = S.view === "week" ? S.sel : S.month;
+  G.y = S.view === "year" ? b.getFullYear() - 5 : b.getFullYear(); G.m = b.getMonth();
+  gRender(); $("gdlg").showModal();
+};
+$("gPrev").onclick = () => gStep(-1); $("gNext").onclick = () => gStep(1);
+$("gClose").onclick = () => $("gdlg").close();
+$("gToday").onclick = () => { $("gdlg").close(); $("today").click(); };
+$("gBody").onclick = e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const dim = (y, m) => new Date(y, m + 1, 0).getDate();
+  if (b.dataset.d){ S.sel = new Date(b.dataset.d + "T00:00"); S.month = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); }
+  else if (b.dataset.m){ const m = +b.dataset.m; S.month = new Date(G.y, m, 1); S.sel = new Date(G.y, m, Math.min(S.sel.getDate(), dim(G.y, m))); }
+  else if (b.dataset.y){ const y = +b.dataset.y, m = S.month.getMonth(); S.month = new Date(y, m, 1); S.sel = new Date(y, m, Math.min(S.sel.getDate(), dim(y, m))); }
+  else return;
+  $("gdlg").close(); render(); loadEvents();
+};
 
 /* ---------- Profil et code d’invitation ---------- */
-$("bProf").onclick = () => {
+const openProfile = () => {
   $("pName").value = S.me.display_name; $("pColor").value = S.me.color; $("pMsg").textContent = "";
   $("pAdmin").hidden = !["owner", "admin"].includes(S.me.role); $("pFam").value = S.fam.name;
   $("pCode").textContent = S.fam.invite_code;
@@ -719,9 +1059,23 @@ function openDlg(ev){
   $("fT1").value = ev ? hm(a) : "09:00"; $("fT2").value = ev ? hm(b) : "10:00";
   const ids = ev ? ev.event_attendees.map(x => x.user_id) : [S.user.id];
   $("fWho").innerHTML = S.members.map(m => `<label><input type="checkbox" value="${m.user_id}"${ids.includes(m.user_id) ? " checked" : ""}> ${esc(m.display_name)}</label>`).join("");
-  $("fMsg").textContent = ""; tAll(); syncDlg();
+  $("fMsg").textContent = ""; tAll(); syncDlg(); setKind(ev?.kind || "event", false);
   $("fSet").disabled = !can; $("fSave").hidden = !can; $("fDel").hidden = !(ev && can); $("fDup").hidden = !ev;
   $("dlg").showModal();
+}
+// Choix du type : un anniversaire = journée entière, répété chaque année, sans heure de fin
+function setKind(k, defaults){
+  $("fKind").dataset.k = k;
+  document.querySelectorAll("#fKind button").forEach(b => { const on = b.dataset.k === k; b.classList.toggle("sel", on); b.setAttribute("aria-checked", String(on)); });
+  const bd = k === "birthday";
+  $("fEndL").hidden = $("fEndR").hidden = bd;
+  $("fStartL").textContent = bd ? "Date de l’anniversaire" : "Début";
+  if (defaults && bd){
+    $("fAll").checked = true; $("fRep").value = "yearly"; $("fD2").value = $("fD1").value;
+    if (!$("fTitle").value.trim()) $("fTitle").value = "Anniversaire de ";
+    tAll(); syncDlg();
+    $("fTitle").focus(); $("fTitle").setSelectionRange($("fTitle").value.length, $("fTitle").value.length);
+  }
 }
 function syncDlg(){
   $("fUntilRow").hidden = $("fRep").value === "none";
@@ -742,12 +1096,12 @@ $("fDup").onclick = () => {
 };
 
 $("fSave").onclick = async () => {
-  const t = $("fTitle").value.trim(), all = $("fAll").checked;
+  const t = $("fTitle").value.trim(), kind = $("fKind").dataset.k || "event", all = $("fAll").checked || kind === "birthday";
   if (!t) return $("fMsg").textContent = "Le titre est requis";
   const s = new Date($("fD1").value + "T" + (all ? "00:00" : $("fT1").value || "00:00"));
-  const e = new Date(($("fD2").value || $("fD1").value) + "T" + (all ? "23:59" : $("fT2").value || "00:00"));
+  const e = new Date((kind === "birthday" ? $("fD1").value : ($("fD2").value || $("fD1").value)) + "T" + (all ? "23:59" : $("fT2").value || "00:00"));
   if (isNaN(s) || isNaN(e) || e < s) return $("fMsg").textContent = "Dates invalides";
-  const row = {title:t, description:$("fDesc").value.trim() || null, location:$("fLoc").value.trim() || null,
+  const row = {kind, title:t, description:$("fDesc").value.trim() || null, location:$("fLoc").value.trim() || null,
     starts_at:s.toISOString(), ends_at:e.toISOString(), all_day:all, important:$("fImp").checked, confidential:$("fConf").checked, recurrence:$("fRep").value, repeat_until:($("fRep").value !== "none" && $("fUntil").value) || null};
   const ids = $("fConf").checked ? [] : [...document.querySelectorAll("#fWho input:checked")].map(x => x.value);
   let id = S.edit?.id, r;
@@ -768,9 +1122,9 @@ $("fDel").onclick = async () => {
   $("dlg").close(); loadEvents();
 };
 
-/* ---------- Signaler un problème ---------- */
+/* ---------- Aide et signalement ---------- */
 const APP_VERSION = "1.0";
-$("bReport").onclick = () => { $("pdlg").close(); $("rMsg").textContent = ""; $("rText").value = ""; $("rdlg").showModal(); };
+$("bHelp").onclick = () => { $("rMsg").textContent = ""; $("rText").value = ""; $("rdlg").showModal(); };
 $("rClose").onclick = () => $("rdlg").close();
 $("rSend").onclick = async () => {
   const msg = $("rText").value.trim();
@@ -827,7 +1181,53 @@ function applyTheme(t){
 $("pTheme").onclick = e => { const b = e.target.closest("[data-t]"); if (b) applyTheme(b.dataset.t); };
 { let t = "light"; try { t = localStorage.getItem("theme") || "light"; } catch {} applyTheme(t); }
 
-sb.auth.getSession().then(({data}) => { if (!data.session) show("auth"); });
+sb.auth.getSession().then(({data}) => {
+  if (!data.session) { show("auth"); authMode(pendingCode() ? "signup" : "login"); }
+  if (linkExpired) { show("auth"); authMode("forgot"); setMsg("forgotMsg", "Ce lien a expiré ou a déjà été utilisé. Redemande un lien."); }
+});
+/* ---------- Fenêtres (mobile) : glisser vers le bas ou toucher la poignée pour fermer ---------- */
+// Fermeture animée : la feuille descend (comme après un glissement), puis se ferme. Sur grand écran : fermeture directe.
+function slideClose(d){
+  if (!d.open) return;
+  if (!matchMedia("(max-width: 600px)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches) return d.close();
+  d.style.transition = "transform .2s ease-in"; d.style.transform = "translateY(100%)";
+  setTimeout(() => { d.close(); d.style.transition = d.style.transform = ""; }, 200);
+}
+document.querySelectorAll("dialog").forEach(d => {
+  const sheet = () => matchMedia("(max-width: 600px)").matches;
+  let y0 = 0, x0 = 0, t0 = 0, on = false, ok = false;
+  // Toucher la poignée (la petite barre en haut) ferme la fenêtre
+  d.addEventListener("click", e => { if (sheet() && e.target === d && e.clientY - d.getBoundingClientRect().top < 44) slideClose(d); });
+  d.addEventListener("touchstart", e => {
+    const t = e.touches[0]; y0 = t.clientY; x0 = t.clientX; t0 = e.timeStamp; on = false;
+    ok = sheet() && e.touches.length === 1 && d.scrollTop === 0 && !e.target.closest("input, textarea, select");
+  }, {passive:true});
+  d.addEventListener("touchmove", e => {
+    if (!ok) return;
+    const t = e.touches[0], dy = t.clientY - y0, dx = t.clientX - x0;
+    if (!on){
+      if (Math.abs(dy) < 8 && Math.abs(dx) < 8) return;
+      if (dy < 0 || dy < Math.abs(dx) * 1.3) { ok = false; return; }   // vers le haut ou de côté : défilement normal
+      on = true;
+    }
+    e.preventDefault();
+    d.style.transition = "none"; d.style.transform = `translateY(${Math.max(dy, 0)}px)`;   // la fenêtre suit le doigt
+  }, {passive:false});
+  const end = e => {
+    if (!on) { ok = false; return; }
+    ok = on = false;
+    const dy = (e.changedTouches?.[0]?.clientY ?? y0) - y0, v = dy / Math.max(e.timeStamp - t0, 1);
+    if (dy > 110 || (dy > 40 && v > .6)) {
+      d.style.transition = "transform .18s ease-in"; d.style.transform = "translateY(100%)";
+      setTimeout(() => { d.close(); d.style.transition = d.style.transform = ""; }, 180);
+    } else {   // pas assez glissé : retour en place
+      d.style.transition = "transform .2s ease-out"; d.style.transform = "";
+      setTimeout(() => { d.style.transition = ""; }, 210);
+    }
+  };
+  d.addEventListener("touchend", end, {passive:true}); d.addEventListener("touchcancel", end, {passive:true});
+});
+
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>
