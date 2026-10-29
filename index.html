@@ -106,6 +106,27 @@ label{font-size:13px;color:var(--mu)}
 .ki{display:flex;gap:2px;margin-top:1px;line-height:0}
 .csep{flex:none;width:1px;background:var(--bd);margin:4px 2px}
 .chip svg{flex:none}
+/* Croix de fermeture des fenêtres */
+dialog .dx{position:absolute;top:10px;right:12px;z-index:3;width:34px;height:34px;padding:0;border-radius:50%;background:var(--fill);color:var(--mu);display:flex;align-items:center;justify-content:center}
+dialog h1{padding-right:44px}
+#gdlg .row.sp{margin-top:34px}
+/* Règles du mot de passe */
+.pwr{list-style:none;margin:-4px 0 10px;padding:0;font-size:13px;color:var(--mu)}
+.pwr li{display:flex;align-items:center;gap:8px;padding:2px 0}
+.pwr li::before{content:"";flex:none;width:16px;height:16px;border-radius:50%;border:1.5px solid var(--bd);box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:10px;line-height:1}
+.pwr li.ok{color:#16a34a}
+.pwr li.ok::before{content:"✓";color:#fff;background:#16a34a;border-color:#16a34a}
+/* Listes déroulantes personnalisées */
+select.sel-native{display:none!important}
+.sf{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;margin:4px 0 10px;padding:12px 14px;border:1px solid var(--bd);border-radius:12px;background:transparent;color:var(--tx);text-align:left}
+.sf:focus-visible{outline:none;border-color:var(--ac)}
+.sf::after{content:"";flex:none;width:8px;height:8px;border:solid var(--mu);border-width:0 2px 2px 0;transform:translateY(-2px) rotate(45deg)}
+#sList{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+#sList button{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:14px 16px;border-radius:14px;background:var(--fill);text-align:left;font-size:15px}
+#sList button.on{background:var(--pc);color:var(--ac);font-weight:600;box-shadow:inset 0 0 0 1.5px var(--ac)}
+#sList button svg{flex:none}
+#sTitle:focus{outline:none}
+#sList button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 /* Titre cliquable + sélecteur de date */
 .navrow .ttl{background:none;padding:6px 4px 6px 0;color:var(--ac);font-size:16px;font-weight:600;display:inline-flex;align-items:center;text-align:left}
 .navrow .ttl::after{content:"";width:7px;height:7px;border:solid currentColor;border-width:0 2px 2px 0;transform:translateY(-2px) rotate(45deg);margin-left:8px}
@@ -189,7 +210,8 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
   </div>
   <div id="resetBox" hidden>
     <h2 style="font-size:16px;margin:0 0 8px">Nouveau mot de passe</h2>
-    <label>Nouveau mot de passe (6 caractères minimum)</label><input id="rPass" type="password" autocomplete="new-password">
+    <label>Nouveau mot de passe</label><input id="rPass" type="password" autocomplete="new-password">
+    <ul class="pwr" id="rRules" aria-live="polite"></ul>
     <label>Confirmer le mot de passe</label><input id="rPass2" type="password" autocomplete="new-password">
     <div class="msg" id="resetMsg"></div>
     <button class="p" id="bReset" style="width:100%">Enregistrer</button>
@@ -198,7 +220,8 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
   <div id="signupBox" hidden>
     <h2 style="font-size:16px;margin:0 0 8px">Créer un compte</h2>
     <label>Email</label><input id="suEmail" type="email" autocomplete="email">
-    <label>Mot de passe (6 caractères minimum)</label><input id="suPass" type="password" autocomplete="new-password">
+    <label>Mot de passe</label><input id="suPass" type="password" autocomplete="new-password">
+    <ul class="pwr" id="suRules" aria-live="polite"></ul>
     <label>Confirmer le mot de passe</label><input id="suPass2" type="password" autocomplete="new-password">
     <div class="msg" id="signupMsg"></div>
     <button class="p" id="bUp" style="width:100%">Créer mon compte</button>
@@ -261,7 +284,7 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
   <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Menu">
     <div class="row sp"><span class="dlogo">Calendy</span><span class="badge2">Famille</span><button id="dClose" hidden aria-label="Fermer le menu" style="padding:8px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <label>Ma famille</label>
-    <strong id="famName" style="font-size:18px"></strong><select id="famSel" hidden></select>
+    <strong id="famName" style="font-size:18px"></strong><select id="famSel" data-title="Ma famille" hidden></select>
     <button id="bNewFam"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Ajouter une famille</button>
     <label style="margin-top:6px">Code de la famille (touche pour copier)</label>
     <button id="bCode" title="Copier le code d’invitation"></button>
@@ -285,8 +308,9 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
     <label><input type="checkbox" id="fAll"> Toute la journée</label><br>
     <label><input type="checkbox" id="fImp"> ★ Important</label><br>
     <label><input type="checkbox" id="fConf"> 🔒 Confidentiel (visible seulement par moi)</label>
+    <p id="fConfNote" hidden style="margin:4px 0 0;font-size:13px;color:var(--mu)">Visible uniquement par toi, même s'il est important : personne d'autre ne le voit ni n'est notifié.</p>
     <label style="display:block;margin-top:12px">Répétition</label>
-    <select id="fRep" style="width:100%;margin:4px 0 10px"><option value="none">Aucune</option><option value="weekly">Toutes les semaines</option><option value="monthly">Tous les mois</option><option value="yearly">Tous les ans</option></select>
+    <select id="fRep" data-title="Répétition" style="width:100%;margin:4px 0 10px"><option value="none">Aucune</option><option value="daily">Tous les jours</option><option value="weekly">Toutes les semaines</option><option value="monthly">Tous les mois</option><option value="yearly">Tous les ans</option></select>
     <div id="fUntilRow" hidden><label>Jusqu’au (facultatif)</label><input type="date" id="fUntil"></div>
     <p id="fSerie" hidden style="color:var(--mu);font-size:13px;margin:0 0 8px">Cet événement se répète : une modification s’applique à toute la série.</p>
     <label id="fStartL">Début</label><div class="dt"><input type="date" id="fD1"><input type="time" id="fT1"></div>
@@ -332,11 +356,23 @@ dialog::before{content:"";display:block;width:38px;height:5px;border-radius:3px;
   <div class="row sp" style="margin-top:14px"><button id="gToday">Aujourd’hui</button><button id="gClose">Fermer</button></div>
 </dialog>
 
+<dialog id="odlg" aria-label="Ouvrir dans l’application">
+  <h1 style="margin:0 0 6px">Ouvrir dans l’application ?</h1>
+  <p style="color:var(--mu);font-size:14px;margin:0 0 14px">Tu as été invité(e) à rejoindre une famille sur Calendy. Tu peux continuer sur le site, ou ouvrir l’application si elle est installée sur ton téléphone.</p>
+  <button class="p" id="oApp" style="width:100%">Ouvrir l’application</button>
+  <button id="oWeb" style="width:100%;margin-top:8px">Continuer sur le site</button>
+</dialog>
+
+<dialog id="sdlg" aria-label="Choisir une option">
+  <h1 id="sTitle" tabindex="-1" autofocus style="margin:0 0 4px"></h1>
+  <div id="sList" role="listbox"></div>
+</dialog>
+
 <dialog id="rdlg">
   <h1>Aide et signalement</h1>
   <p style="color:var(--mu);font-size:14px;margin:0 0 10px">Un problème, une question ou une idée pour améliorer Calendy ? Dis-nous tout ici.</p>
   <label>Type</label>
-  <select id="rCat" style="width:100%;margin:4px 0 10px"><option value="bug">Un problème (bug)</option><option value="suggestion">Une idée ou suggestion</option><option value="autre">Autre</option></select>
+  <select id="rCat" data-title="Type de signalement" style="width:100%;margin:4px 0 10px"><option value="bug">Un problème (bug)</option><option value="suggestion">Une idée ou suggestion</option><option value="autre">Autre</option></select>
   <label>Décris ce qui se passe</label>
   <textarea id="rText" rows="5" maxlength="2000" placeholder="Que faisais-tu ? Que s’est-il passé ?"></textarea>
   <label><input type="checkbox" id="rTech" checked> Joindre des informations techniques (type d’appareil, version de l’application)</label>
@@ -432,7 +468,12 @@ if (isNative) {
   });
 }
 // Lien d’invitation : /?code=XXXX -> on garde le code jusqu’à la connexion
-try { const c = new URLSearchParams(location.search).get("code"); if (c && /^[A-Za-z0-9]{4,16}$/.test(c)) { localStorage.setItem("pendingCode", c.toLowerCase()); history.replaceState(null, "", location.pathname); } } catch {}
+let inviteLanding = "";   // code d'invitation à proposer d'ouvrir dans l'appli (navigateur Android uniquement)
+try {
+  const q = new URLSearchParams(location.search), c = q.get("code");
+  if (c && /^[A-Za-z0-9]{4,16}$/.test(c)) { localStorage.setItem("pendingCode", c.toLowerCase()); if (!q.has("noapp")) inviteLanding = c.toLowerCase(); history.replaceState(null, "", location.pathname); }
+  else if (q.has("noapp")) history.replaceState(null, "", location.pathname);   // retour du navigateur : l'appli n'est pas installée
+} catch {}
 const NP_DEF = {enabled:true, notify_new:true, notify_changes:true, only_important:false, reminder_offsets:[1440]};
 
 function show(id){ ["auth","onboard","app"].forEach(x => $(x).hidden = x !== id); }
@@ -490,10 +531,21 @@ const googleSignIn = async () => {
   } catch (e) { showErr(String((e && e.message) || e)); }
 };
 // Retour de Google dans l’application Android (lien profond com.bendark.calendy://auth)
+// Lien d'invitation reçu par l'appli (depuis la page web) : com.bendark.calendy://invite?invite=CODE
+function inviteFromLink(url){
+  if (!url || !url.startsWith("com.bendark.calendy://invite")) return false;
+  let c = ""; try { c = new URL(url).searchParams.get("invite") || ""; } catch {}
+  if (!/^[A-Za-z0-9]{4,16}$/.test(c)) return true;
+  try { localStorage.setItem("pendingCode", c.toLowerCase()); } catch {}
+  if (S.me && !$("app").hidden) boot();                  // déjà connecté : on rejoint la famille
+  else if (!$("auth").hidden) authMode("signup");        // pas de compte : création de compte d'abord
+  return true;
+}
 if (isNative) {
   const A = plug("App");
   if (A && A.addListener) A.addListener("appUrlOpen", async ({url}) => {
     if (!url || !url.startsWith("com.bendark.calendy://")) return;
+    if (inviteFromLink(url)) return;
     if (url.startsWith("com.bendark.calendy://new")) { if (S.me && !$("app").hidden) $("add").click(); else window.__openNew = true; return; }
     try { const B = plug("Browser"); if (B && B.close) B.close(); } catch {}
     try {
@@ -509,6 +561,21 @@ if (isNative) {
 $("bGoogle").onclick = $("bGoogle2").onclick = googleSignIn;
 $("toSignup").onclick = () => authMode("signup");
 $("toLogin").onclick = () => authMode("login");
+/* ---------- Règles du mot de passe (création de compte et nouveau mot de passe) ---------- */
+// 8 caractères minimum, au moins 1 chiffre et 1 caractère spécial (ni lettre, ni chiffre, ni espace). Pas appliqué à la connexion.
+const PW_RULES = [
+  ["8 caractères minimum", p => p.length >= 8],
+  ["1 chiffre", p => /\d/.test(p)],
+  ["1 caractère spécial (! ? @ # $ % …)", p => /[^\p{L}\p{N}\s]/u.test(p)]
+];
+const PW_MSG = "Le mot de passe doit contenir au moins 8 caractères, 1 chiffre et 1 caractère spécial.";
+const pwOk = p => PW_RULES.every(([, ok]) => ok(p));
+function pwShow(input, list){
+  const draw = () => { list.innerHTML = PW_RULES.map(([t, ok]) => `<li class="${ok(input.value) ? "ok" : ""}">${t}</li>`).join(""); };
+  input.addEventListener("input", draw); draw();
+}
+pwShow($("suPass"), $("suRules")); pwShow($("rPass"), $("rRules"));
+
 /* ---------- Mot de passe oublié ---------- */
 // Web : on revient sur la même page ; appli Android : lien profond (déjà utilisé pour Google)
 const RESET_REDIRECT = isNative ? "com.bendark.calendy://auth" : location.origin + location.pathname;
@@ -530,7 +597,7 @@ $("bForgot").onclick = async () => {
 };
 $("bReset").onclick = async () => {
   const p = $("rPass").value;
-  if (p.length < 6) return setMsg("resetMsg", "Le mot de passe doit faire au moins 6 caractères");
+  if (!pwOk(p)) return setMsg("resetMsg", PW_MSG);
   if (p !== $("rPass2").value) return setMsg("resetMsg", "Les deux mots de passe ne sont pas identiques");
   const b = $("bReset"); b.disabled = true;
   const email = S.user?.email || "";
@@ -557,7 +624,7 @@ $("bUp").onclick = async () => {
   const email = $("suEmail").value.trim(), password = $("suPass").value;
   $("signupMsg").textContent = "";
   if (!email) return $("signupMsg").textContent = "L’email est requis";
-  if (password.length < 6) return $("signupMsg").textContent = "Le mot de passe doit faire au moins 6 caractères";
+  if (!pwOk(password)) return $("signupMsg").textContent = PW_MSG;
   if (password !== $("suPass2").value) return $("signupMsg").textContent = "Les deux mots de passe ne sont pas identiques";
   const pend = pendingCode();
   // Si le mail de confirmation s’ouvre dans un autre navigateur, le code d’invitation voyage dans le lien
@@ -824,6 +891,7 @@ async function loadEvents(){
 }
 // Répétitions : on calcule les occurrences visibles (heure locale de l’appareil)
 function addPeriod(d, rec, n){
+  if (rec === "daily") return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n, d.getHours(), d.getMinutes(), d.getSeconds());   // jours calendaires (heure d'été sans décalage)
   if (rec === "weekly") return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7 * n, d.getHours(), d.getMinutes(), d.getSeconds());
   if (rec === "yearly"){   // 29 février -> 28 février les années non bissextiles (comme côté serveur)
     const y = d.getFullYear() + n, dim = new Date(y, d.getMonth() + 1, 0).getDate();
@@ -837,8 +905,9 @@ function expand(list, a, b){
   for (const e of list){
     if (!e.recurrence || e.recurrence === "none") { out.push(e); continue; }
     const st = new Date(e.starts_at), dur = new Date(e.ends_at) - st;
-    const step = e.recurrence === "weekly" ? 7 * 864e5 : e.recurrence === "yearly" ? 365 * 864e5 : 31 * 864e5;
-    for (let n = Math.max(0, Math.floor((a - st) / step) - 1), i = 0; i < 70; n++, i++){
+    const step = e.recurrence === "daily" ? 864e5 : e.recurrence === "weekly" ? 7 * 864e5 : e.recurrence === "yearly" ? 365 * 864e5 : 31 * 864e5;
+    const cap = e.recurrence === "daily" ? Math.ceil((b - a) / 864e5) + 4 : 70;   // un événement quotidien a une occurrence par jour de la période
+    for (let n = Math.max(0, Math.floor((a - st) / step) - 1), i = 0; i < cap; n++, i++){
       const os = addPeriod(st, e.recurrence, n);
       if (os >= b) break;
       if (e.repeat_until && ymd(os) > e.repeat_until) break;
@@ -880,7 +949,7 @@ if (isNative) {
   if (A && A.addListener) {
     A.addListener("appStateChange", ({isActive}) => { if (isActive) syncWidget(); });   // retour dans l'appli : on actualise le widget
     // Lancement à froid par le bouton « + » du widget
-    if (A.getLaunchUrl) A.getLaunchUrl().then(r => { if (r && r.url && r.url.startsWith("com.bendark.calendy://new")) window.__openNew = true; }).catch(() => {});
+    if (A.getLaunchUrl) A.getLaunchUrl().then(r => { if (r && r.url) { if (r.url.startsWith("com.bendark.calendy://new")) window.__openNew = true; else inviteFromLink(r.url); } }).catch(() => {});
   }
 }
 const PASTELS = ["#CDF3E4", "#D6EEFF", "#FFE1D6", "#EAE0F8", "#E7F7C9", "#FFE6F0", "#DCEAF9"];
@@ -929,7 +998,10 @@ $("helloStrip").onclick = e => {
 function render(){
   renderHead();
   const todayK = ymd(new Date()), selK = ymd(S.sel), wk = S.view === "week", yr = S.view === "year";
-  $("viewCard").classList.toggle("flat", wk || yr); $("dayCard").hidden = wk || yr; $("helloStrip").hidden = yr;
+  $("viewCard").classList.toggle("flat", wk || yr); $("dayCard").hidden = wk || yr; $("helloStrip").hidden = !wk;   // la bande de la semaine n'existe qu'en vue Semaine
+  { const strip = $("helloStrip"), chips = $("chips");   // vue Semaine : les filtres passent au-dessus de la barre de la semaine
+    if (wk) { if (chips.nextElementSibling !== strip) strip.before(chips); }
+    else if (strip.nextElementSibling !== chips) strip.after(chips); }
   if (yr){
     const Y = S.month.getFullYear(), evDays = new Set();
     for (const e of S.events){
@@ -1109,6 +1181,7 @@ $("pRenew").onclick = async () => {
 
 /* ---------- Fenêtre d’événement ---------- */
 function openDlg(ev){
+  S.newId = null;
   S.edit = ev || null;
   const can = !ev || ev.created_by === S.user.id || ["owner","admin"].includes(S.me.role);
   const a = ev ? new Date(ev.starts_at) : S.sel, b = ev ? new Date(ev.ends_at) : S.sel;
@@ -1141,9 +1214,12 @@ function setKind(k, defaults){
 }
 function syncDlg(){
   $("fUntilRow").hidden = $("fRep").value === "none";
+  // Confidentiel : seul le créateur voit l'événement, donc pas de participants. « Important » reste possible
+  // (étoile, et rappels pour toi même si tu n'as activé que les événements importants).
   const c = $("fConf").checked;
-  if (c) { $("fImp").checked = false; document.querySelectorAll("#fWho input").forEach(i => i.checked = false); }
-  $("fImp").disabled = c; document.querySelectorAll("#fWho input").forEach(i => i.disabled = c);
+  if (c) document.querySelectorAll("#fWho input").forEach(i => i.checked = false);
+  document.querySelectorAll("#fWho input").forEach(i => i.disabled = c);
+  $("fConfNote").hidden = !c;
 }
 $("fRep").onchange = $("fConf").onchange = syncDlg;
 function tAll(){ $("fT1").hidden = $("fT2").hidden = $("fAll").checked; }
@@ -1151,13 +1227,21 @@ $("fAll").onchange = tAll;
 $("add").onclick = () => openDlg(null);
 $("fCancel").onclick = () => $("dlg").close();
 $("fDup").onclick = () => {
-  S.edit = null;
+  S.edit = null; S.newId = null;
   $("dTitle").textContent = "Copie : choisis la nouvelle date";
   $("fSet").disabled = false; $("fSave").hidden = false; $("fDel").hidden = true; $("fDup").hidden = true;
   $("fD1").focus();
 };
 
+// Identifiant créé côté appli avant l'envoi : un second envoi du même événement ne peut plus créer de doublon
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)));
+let saving = false;
 $("fSave").onclick = async () => {
+  if (saving) return;   // un enregistrement est déjà en cours : on ignore les appuis suivants
+  saving = true; $("fSave").disabled = true; $("fMsg").textContent = "";
+  try { await saveEvent(); } finally { saving = false; $("fSave").disabled = false; }
+};
+async function saveEvent(){
   const t = $("fTitle").value.trim(), kind = $("fKind").dataset.k || "event", all = $("fAll").checked || kind === "birthday";
   if (!t) return $("fMsg").textContent = "Le titre est requis";
   const s = new Date($("fD1").value + "T" + (all ? "00:00" : $("fT1").value || "00:00"));
@@ -1168,15 +1252,20 @@ $("fSave").onclick = async () => {
   const ids = $("fConf").checked ? [] : [...document.querySelectorAll("#fWho input:checked")].map(x => x.value);
   let id = S.edit?.id, r;
   if (id) r = await sb.from("events").update(row).eq("id", id);
-  else { r = await sb.from("events").insert({...row, family_id:S.fam.id, created_by:S.user.id}).select("id").single(); id = r.data?.id; }
+  else {
+    if (!S.newId) S.newId = uuid();
+    r = await sb.from("events").insert({...row, id:S.newId, family_id:S.fam.id, created_by:S.user.id}).select("id").single();
+    if (r.error && r.error.code === "23505") r = {data:{id:S.newId}, error:null};   // déjà créé par un envoi précédent (réponse perdue ou lente)
+    id = r.data?.id;
+  }
   if (r.error) return $("fMsg").textContent = r.error.message;
   await sb.from("event_attendees").delete().eq("event_id", id);
   if (ids.length){
     const q = await sb.from("event_attendees").insert(ids.map(u => ({event_id:id, user_id:u})));
     if (q.error) return $("fMsg").textContent = q.error.message;
   }
-  $("dlg").close(); loadEvents();
-};
+  S.newId = null; $("dlg").close(); loadEvents();
+}
 $("fDel").onclick = async () => {
   if (!confirm("Supprimer cet événement ?")) return;
   const r = await sb.from("events").delete().eq("id", S.edit.id);
@@ -1247,6 +1336,80 @@ sb.auth.getSession().then(({data}) => {
   if (!data.session) { show("auth"); authMode(pendingCode() ? "signup" : "login"); }
   if (linkExpired) { show("auth"); authMode("forgot"); setMsg("forgotMsg", "Ce lien a expiré ou a déjà été utilisé. Redemande un lien."); }
 });
+/* ---------- Listes déroulantes : feuille de choix aux couleurs de l'appli (remplace le sélecteur natif d'Android) ---------- */
+// Chaque <select> reste dans la page (valeur, événements « change », code existant inchangé) mais est masqué ;
+// un champ identique aux autres s'affiche à sa place et ouvre une feuille de choix.
+{
+  const valueProp = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value");
+  const CHECK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>';
+  let current = null;
+  document.querySelectorAll("select").forEach(sel => {
+    const b = document.createElement("button"), txt = document.createElement("span");
+    b.type = "button"; b.className = "sf"; b.setAttribute("aria-haspopup", "listbox"); b.appendChild(txt);
+    const refresh = () => { const o = sel.options[sel.selectedIndex]; txt.textContent = o ? o.textContent : ""; b.hidden = sel.hidden; };
+    sel._refresh = refresh;
+    sel.classList.add("sel-native"); sel.tabIndex = -1; sel.setAttribute("aria-hidden", "true");
+    sel.parentNode.insertBefore(b, sel);
+    // le code de l'appli modifie parfois la valeur ou les options : le champ affiché suit
+    Object.defineProperty(sel, "value", { configurable: true, get(){ return valueProp.get.call(this); }, set(v){ valueProp.set.call(this, v); refresh(); } });
+    new MutationObserver(refresh).observe(sel, {childList: true, subtree: true, attributes: true, attributeFilter: ["hidden"]});
+    b.onclick = () => {
+      current = sel;
+      const prev = b.previousElementSibling;
+      $("sTitle").textContent = sel.dataset.title || (prev && prev.tagName === "LABEL" ? prev.textContent : "Choisir");
+      $("sList").innerHTML = [...sel.options].map((o, i) => `<button type="button" role="option" data-i="${i}" aria-selected="${o.selected}"${o.selected ? ' class="on"' : ""}><span>${esc(o.textContent)}</span>${o.selected ? CHECK : ""}</button>`).join("");
+      $("sdlg").showModal();
+    };
+    refresh();
+  });
+  $("sList").onclick = e => {
+    const btn = e.target.closest("[data-i]"); if (!btn || !current) return;
+    const sel = current, i = +btn.dataset.i, changed = sel.selectedIndex !== i;
+    current = null; sel.selectedIndex = i; sel._refresh();
+    if (changed) sel.dispatchEvent(new Event("change", {bubbles: true}));
+    slideClose($("sdlg"));
+  };
+}
+
+/* ---------- Anti double-appui : une action ne peut pas être relancée tant qu'elle n'est pas terminée ---------- */
+// Chaque bouton est désactivé pendant son action (les appuis suivants sont ignorés), puis réactivé à la fin, même en cas d'erreur.
+// Les boutons d'un même groupe (ex. « Créer » / « Rejoindre ») se bloquent entre eux.
+function guard(ids){
+  const btns = ids.map($); let running = false;
+  btns.forEach(b => {
+    const f = b.onclick; if (!f) return;
+    b.onclick = async function(...a){
+      if (running) return;
+      running = true; btns.forEach(x => { x.disabled = true; }); b.setAttribute("aria-busy", "true");
+      try { return await f.apply(this, a); }
+      finally { running = false; btns.forEach(x => { x.disabled = false; }); b.removeAttribute("aria-busy"); }
+    };
+  });
+}
+["bIn", "bUp", "bLeave", "bDelFam", "pDelAcc", "pSave", "pRenew", "fDel", "rSend", "nSave"].forEach(id => guard([id]));
+guard(["bCreate", "bJoin"]);   // créer une famille / en rejoindre une
+guard(["bOut1", "bOut2"]);     // déconnexion
+
+/* ---------- Lien d'invitation ouvert dans un navigateur Android : proposer l'application ---------- */
+// Le lien intent:// ouvre l'appli si elle est installée ; sinon le navigateur revient sur le site (?noapp=1) et on continue sur le web.
+if (inviteLanding && !isNative && /Android/i.test(navigator.userAgent)) {
+  $("oApp").onclick = () => {
+    location.href = "intent://invite?invite=" + encodeURIComponent(inviteLanding) + "#Intent;scheme=com.bendark.calendy;package=com.bendark.calendy;S.browser_fallback_url="
+      + encodeURIComponent(SITE_URL + "/?noapp=1") + ";end";
+  };
+  $("oWeb").onclick = () => slideClose($("odlg"));
+  $("odlg").showModal();
+}
+
+/* ---------- Fenêtres : petite croix de fermeture en haut à droite ---------- */
+document.querySelectorAll("dialog").forEach(d => {
+  const x = document.createElement("button");
+  x.type = "button"; x.className = "dx"; x.setAttribute("aria-label", "Fermer");
+  x.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  x.onclick = () => slideClose(d);
+  d.append(x);   // en dernier dans le code : la fenêtre garde son focus d'origine (la croix est positionnée en haut à droite par le CSS)
+});
+
 /* ---------- Fenêtres (mobile) : glisser vers le bas ou toucher la poignée pour fermer ---------- */
 // Fermeture animée : la feuille descend (comme après un glissement), puis se ferme. Sur grand écran : fermeture directe.
 function slideClose(d){
